@@ -41,7 +41,7 @@ Library
                         array           >= 0.3,
                         base            == 4.*,
                         bytestring      >= 0.9,
-                        repa            >= 3.0,
+                        repa            >= 3.1,
                         vector          >= 0.9
 
   Other-modules:        Data.Array.Accelerate.IO.BlockCopy

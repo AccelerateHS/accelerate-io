@@ -114,6 +114,10 @@ instance A.Elt e => R.Fillable A e where
     = do adata  <- unsafeSTToIO $ A.unsafeFreezeArrayData mad
          return $! AAccelerate sh adata
 
+  {-# INLINE deepSeqMArr #-}
+  deepSeqMArr (MAArr arr) x             -- maybe?
+    = arr `seq` x
+
 -- Conversions -----------------------------------------------------------------
 
 -- | /O(1)/. Wrap an Accelerate array.
@@ -148,7 +152,8 @@ computeAccS = R.computeS
 -- | Parallel computation of array elements
 --
 computeAccP
-    :: (A.Elt e, R.Fill r A sh e, Monad m)
-    => R.Array r sh e -> m (R.Array A sh e)
+    :: (R.Fill r A sh e, A.Elt e, Monad m)
+    => R.Array r sh e
+    -> m (R.Array A sh e)
 {-# INLINE computeAccP #-}
 computeAccP = R.computeP
