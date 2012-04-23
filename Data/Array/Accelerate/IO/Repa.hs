@@ -148,8 +148,7 @@ computeAccS = R.computeS
 -- | Parallel computation of array elements
 --
 computeAccP
-    :: R.Fill r A sh e
-    => R.Array r sh e -> R.Array A sh e
+    :: (A.Elt e, R.Fill r A sh e, Monad m)
+    => R.Array r sh e -> m (R.Array A sh e)
 {-# INLINE computeAccP #-}
 computeAccP = R.computeP
-

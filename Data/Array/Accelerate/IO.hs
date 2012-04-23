@@ -8,7 +8,7 @@
 -- Portability : non-portable (GHC extensions)
 --
 -- This module provides efficient conversion routines between different array
--- types and Accelerate Arrays.
+-- types and Accelerate arrays.
 --
 -- The Repa interface provides an efficient non-copying instance for Repa to
 -- read and write directly into arrays that can then be passed to Accelerate.
@@ -28,11 +28,9 @@ module Data.Array.Accelerate.IO (
   module Data.Array.Accelerate.IO.ByteString,
   module Data.Array.Accelerate.IO.Ptr,
   module Data.Array.Accelerate.IO.Repa,
-  module Data.Array.Accelerate.IO.Vector
 
 ) where
 
 import Data.Array.Accelerate.IO.Ptr
 import Data.Array.Accelerate.IO.Repa
 import Data.Array.Accelerate.IO.ByteString
-import Data.Array.Accelerate.IO.Vector
