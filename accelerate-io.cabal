@@ -41,13 +41,15 @@ Library
                         array           >= 0.3,
                         base            == 4.*,
                         bytestring      >= 0.9,
-                        repa            >= 3.0
+                        repa            >= 3.0,
+                        vector          >= 0.9
 
   Other-modules:        Data.Array.Accelerate.IO.BlockCopy
   Exposed-modules:      Data.Array.Accelerate.IO
                         Data.Array.Accelerate.IO.ByteString
                         Data.Array.Accelerate.IO.Ptr
                         Data.Array.Accelerate.IO.Repa
+                        Data.Array.Accelerate.IO.Vector
 
   if flag(bounds-checks)
     cpp-options:        -DACCELERATE_BOUNDS_CHECKS
@@ -59,6 +61,8 @@ Library
     cpp-options:        -DACCELERATE_INTERNAL_CHECKS
 
   ghc-options:          -O2 -Wall -funbox-strict-fields
+
+  Extensions:           TypeFamilies
 
 Source-repository head
   Type:                 git
