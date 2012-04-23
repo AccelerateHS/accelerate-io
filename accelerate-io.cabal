@@ -5,7 +5,7 @@ Tested-with:            GHC >= 7.0.3
 Build-type:             Simple
 
 Synopsis:               Read and write Accelerate arrays in various formats
-Description:            This module provides efficient conversion routines between a range of array types
+Description:            This package provides efficient conversion routines between a range of array types
                         and Accelerate arrays.
 
 License:                BSD3
