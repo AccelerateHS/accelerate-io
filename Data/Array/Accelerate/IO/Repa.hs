@@ -19,7 +19,7 @@
 
 module Data.Array.Accelerate.IO.Repa (
 
-  A, R.Array(..), Shapes,
+  A, Shapes,
   fromRepa, toRepa,
   computeAccS, computeAccP
 
