@@ -65,8 +65,7 @@ instance Shapes sr sa => Shapes (sr R.:. Int) (sa A.:. Int) where
 --
 data A
 data instance R.Array A sh e
-  = AAccelerate {-# UNPACK #-} !sh
-                {-# UNPACK #-} !(A.ArrayData (A.EltRepr e))
+  = AAccelerate !sh !(A.ArrayData (A.EltRepr e))
 
 -- Repr ------------------------------------------------------------------------
 
