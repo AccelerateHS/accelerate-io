@@ -44,8 +44,8 @@ Library
                         repa            >= 3.1,
                         vector          >= 0.9
 
-  Other-modules:        Data.Array.Accelerate.IO.BlockCopy
   Exposed-modules:      Data.Array.Accelerate.IO
+  Other-modules:        Data.Array.Accelerate.IO.BlockCopy
                         Data.Array.Accelerate.IO.ByteString
                         Data.Array.Accelerate.IO.Ptr
                         Data.Array.Accelerate.IO.Repa
