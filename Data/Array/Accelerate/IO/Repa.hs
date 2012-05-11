@@ -117,6 +117,11 @@ instance A.Elt e => R.Fillable A e where
   deepSeqMArr (MAArr arr) x             -- maybe?
     = arr `seq` x
 
+  {-# INLINE touchMArr #-}
+  touchMArr _                           -- maybe?
+    = return ()
+
+
 -- Conversions -----------------------------------------------------------------
 
 -- | /O(1)/. Wrap an Accelerate array.
