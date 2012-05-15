@@ -23,7 +23,7 @@ module Data.Array.Accelerate.IO.BlockCopy (
 import Foreign
 import Foreign.C
 import GHC.Base
-import Data.Array.Base (bOOL_SCALE, wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE)
+import Data.Array.Base (wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE)
 import Data.ByteString
 
 -- friends
@@ -64,7 +64,7 @@ type instance BlockCopyFuns Word32 = BlockCopyFun Word32
 type instance BlockCopyFuns Word64 = BlockCopyFun Word64
 type instance BlockCopyFuns Float  = BlockCopyFun Float
 type instance BlockCopyFuns Double = BlockCopyFun Double
-type instance BlockCopyFuns Bool   = BlockCopyFun Word8 -- Packed a bit vector
+type instance BlockCopyFuns Bool   = BlockCopyFun Word8
 type instance BlockCopyFuns Char   = BlockCopyFun Char
 type instance BlockCopyFuns (a,b)  = (BlockCopyFuns a, BlockCopyFuns b)
 
@@ -93,7 +93,7 @@ type instance BlockPtrs Word32 = Ptr Word32
 type instance BlockPtrs Word64 = Ptr Word64
 type instance BlockPtrs Float  = Ptr Float
 type instance BlockPtrs Double = Ptr Double
-type instance BlockPtrs Bool   = Ptr Word8 -- Packed as a bit vector
+type instance BlockPtrs Bool   = Ptr Word8
 type instance BlockPtrs Char   = Ptr Char
 type instance BlockPtrs (a,b)  = (BlockPtrs a, BlockPtrs b)
 
@@ -164,8 +164,8 @@ blockCopyFunGenerator array@(Array _ arrayData) = aux arrayElt arrayData
    aux ArrayEltRword64 ad = base (ptrsOfArrayData ad) (sizeA * 8)
    aux ArrayEltRfloat  ad = base (ptrsOfArrayData ad) (box fLOAT_SCALE sizeA)
    aux ArrayEltRdouble ad = base (ptrsOfArrayData ad) (box dOUBLE_SCALE sizeA)
-   aux ArrayEltRbool   ad = base (ptrsOfArrayData ad) (box bOOL_SCALE sizeA)
-   aux ArrayEltRchar   _ = error "not defined yet" -- base (castPtr $ ptrsOfArrayData ad) (sizeA * 4)
+   aux ArrayEltRbool   ad = base (ptrsOfArrayData ad) sizeA
+   aux ArrayEltRchar   ad = base (ptrsOfArrayData ad) (sizeA * 4)
    aux (ArrayEltRpair a b) (AD_Pair ad1 ad2) = ((bpFromC, bsFromC), (bpToC, bsToC), toH)
      where
        ((bpFromC1, bsFromC1), (bpToC1, bsToC1), toH1) = aux a ad1
