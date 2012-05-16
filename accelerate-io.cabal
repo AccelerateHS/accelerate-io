@@ -37,7 +37,7 @@ Flag internal-checks
 
 Library
   Include-Dirs:         include
-  Build-depends:        accelerate      == 0.13,
+  Build-depends:        accelerate      == 0.13.*,
                         array           >= 0.3,
                         base            == 4.*,
                         bytestring      >= 0.9,
