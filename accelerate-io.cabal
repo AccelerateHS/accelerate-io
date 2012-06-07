@@ -40,6 +40,7 @@ Library
   Build-depends:        accelerate      == 0.13.*,
                         array           >= 0.3,
                         base            == 4.*,
+                        bmp             >= 1.2,
                         bytestring      >= 0.9,
                         repa            >= 3.2,
                         vector          >= 0.9
@@ -47,6 +48,7 @@ Library
   Exposed-modules:      Data.Array.Accelerate.IO
   Other-modules:        Data.Array.Accelerate.IO.BlockCopy
                         Data.Array.Accelerate.IO.ByteString
+                        Data.Array.Accelerate.IO.BMP
                         Data.Array.Accelerate.IO.Ptr
                         Data.Array.Accelerate.IO.Repa
                         Data.Array.Accelerate.IO.Vector
@@ -67,3 +69,4 @@ Library
 Source-repository head
   Type:                 git
   Location:             git://github.com/AccelerateHS/accelerate-io.git
+

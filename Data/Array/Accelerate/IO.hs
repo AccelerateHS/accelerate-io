@@ -26,6 +26,7 @@
 module Data.Array.Accelerate.IO (
 
   module Data.Array.Accelerate.IO.ByteString,
+  module Data.Array.Accelerate.IO.BMP,
   module Data.Array.Accelerate.IO.Ptr,
   module Data.Array.Accelerate.IO.Repa,
   module Data.Array.Accelerate.IO.Vector,
@@ -33,6 +34,8 @@ module Data.Array.Accelerate.IO (
 ) where
 
 import Data.Array.Accelerate.IO.ByteString
+import Data.Array.Accelerate.IO.BMP
 import Data.Array.Accelerate.IO.Ptr
 import Data.Array.Accelerate.IO.Repa
 import Data.Array.Accelerate.IO.Vector
+
