@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Vector
 -- Copyright   : [2012] Adam C. Foltzer
@@ -9,6 +10,8 @@
 --
 -- Helpers for fast conversion of 'Data.Vector.Storable' vectors into
 -- Accelerate arrays.
+--
+
 module Data.Array.Accelerate.IO.Vector (
     -- * Vector conversions
     fromVector
@@ -53,3 +56,4 @@ fromVector v = unsafePerformIO $ fromVectorIO v
 toVector :: (Storable a, Elt a, BlockPtrs (EltRepr a) ~ ((), Ptr a)) 
          => Array DIM1 a -> Vector a
 toVector arr = unsafePerformIO $ toVectorIO arr
+
