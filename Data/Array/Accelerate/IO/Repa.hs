@@ -64,14 +64,16 @@ instance Shapes sr sa => Shapes (sr R.:. Int) (sa A.:. Int) where
 -- further parallel computation on the GPU.
 --
 data A
-data instance R.Array A sh e
-  = AAccelerate !sh !(A.ArrayData (A.EltRepr e))
 
 -- Repr ------------------------------------------------------------------------
 
 -- | Reading elements of the Accelerate array
 --
-instance A.Elt e => R.Repr A e where
+instance A.Elt e => R.Source A e where
+  data Array A sh e
+    = AAccelerate !sh !(A.ArrayData (A.EltRepr e))
+
+
   {-# INLINE extent #-}
   extent (AAccelerate sh _)
     = sh
@@ -95,30 +97,30 @@ instance A.Elt e => R.Repr A e where
 
 -- | Filling Accelerate arrays
 --
-instance A.Elt e => R.Fillable A e where
-  data MArr A e
-    = forall s. MAArr (A.MutableArrayData s (A.EltRepr e))
+instance A.Elt e => R.Target A e where
+  data MVec A e
+    = forall s. MAVec (A.MutableArrayData s (A.EltRepr e))
 
-  {-# INLINE newMArr #-}
-  newMArr n
-    = MAArr `liftM` unsafeSTToIO (A.newArrayData n)
+  {-# INLINE newMVec #-}
+  newMVec n
+    = MAVec `liftM` unsafeSTToIO (A.newArrayData n)
 
-  {-# INLINE unsafeWriteMArr #-}
-  unsafeWriteMArr (MAArr mad) n e
+  {-# INLINE unsafeWriteMVec #-}
+  unsafeWriteMVec (MAVec mad) n e
     = unsafeSTToIO
     $ A.writeArrayData mad n (A.fromElt e)
 
-  {-# INLINE unsafeFreezeMArr #-}
-  unsafeFreezeMArr sh (MAArr mad)
+  {-# INLINE unsafeFreezeMVec #-}
+  unsafeFreezeMVec sh (MAVec mad)
     = do adata  <- unsafeSTToIO $ A.unsafeFreezeArrayData mad
          return $! AAccelerate sh adata
 
-  {-# INLINE deepSeqMArr #-}
-  deepSeqMArr (MAArr arr) x             -- maybe?
+  {-# INLINE deepSeqMVec #-}
+  deepSeqMVec (MAVec arr) x             -- maybe?
     = arr `seq` x
 
-  {-# INLINE touchMArr #-}
-  touchMArr _                           -- maybe?
+  {-# INLINE touchMVec #-}
+  touchMVec _                           -- maybe?
     = return ()
 
 
@@ -148,7 +150,7 @@ fromRepa (AAccelerate sh adata)
 -- | Sequential computation of array elements
 --
 computeAccS
-    :: R.Fill r A sh e
+    :: (R.Load r sh e, A.Elt e)
     => R.Array r sh e -> R.Array A sh e
 {-# INLINE computeAccS #-}
 computeAccS = R.computeS
@@ -156,7 +158,7 @@ computeAccS = R.computeS
 -- | Parallel computation of array elements
 --
 computeAccP
-    :: (R.Fill r A sh e, A.Elt e, Monad m)
+    :: (R.Load r sh e, A.Elt e, Monad m)
     => R.Array r sh e
     -> m (R.Array A sh e)
 {-# INLINE computeAccP #-}
