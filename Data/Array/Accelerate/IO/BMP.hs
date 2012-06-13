@@ -97,7 +97,7 @@ luminanceOfRGBA32 rgba =
       g = 0.59 * A.fromIntegral ((rgba `div` 0x100)   .&. 0xFF)
       b = 0.11 * A.fromIntegral ((rgba `div` 0x10000) .&. 0xFF)
   in
-  r + g + b
+  (r + g + b) / 255
 
 
 -- | Convert a value in the range [0..1] to a grey RGB colour.
