@@ -94,14 +94,14 @@ instance A.Elt e => R.Source A e where
   {-# INLINE linearIndex #-}
   linearIndex (AAccelerate sh adata) ix
     | ix >= 0 && ix < R.size sh
-    = A.toElt (adata `A.indexArrayData` ix)
+    = A.toElt (adata `A.unsafeIndexArrayData` ix)
 
     | otherwise
     = error "Repa: accelerate array out of bounds"
 
   {-# INLINE unsafeLinearIndex #-}
   unsafeLinearIndex (AAccelerate _ adata) ix
-    = A.toElt (adata `A.indexArrayData` ix)
+    = A.toElt (adata `A.unsafeIndexArrayData` ix)
 
   {-# INLINE deepSeqArray #-}
   deepSeqArray (AAccelerate sh adata) x
@@ -121,7 +121,7 @@ instance A.Elt e => R.Target A e where
   {-# INLINE unsafeWriteMVec #-}
   unsafeWriteMVec (MAVec mad) n e
     = unsafeSTToIO
-    $ A.writeArrayData mad n (A.fromElt e)
+    $ A.unsafeWriteArrayData mad n (A.fromElt e)
 
   {-# INLINE unsafeFreezeMVec #-}
   unsafeFreezeMVec sh (MAVec mad)
