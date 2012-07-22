@@ -10,7 +10,7 @@
 
 module Data.Array.Accelerate.IO.ByteString (
 
-  -- * Copy to/from (strict) ByteString`s
+  -- ** Data.ByteString
   ByteStrings, fromByteString, toByteString
 
 ) where

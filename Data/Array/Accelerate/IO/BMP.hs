@@ -10,11 +10,15 @@
 
 module Data.Array.Accelerate.IO.BMP (
 
-  -- * File IO
+  -- ** Bitmap images
+  --
+  -- | Reading and writing arrays as uncompressed 24 or 32-bit Windows BMP
+  -- files.
+  --
+  RGBA32,
   readImageFromBMP, writeImageToBMP,
 
-  -- * Manipulating pixels
-  RGBA32,
+  -- *** Manipulating pixels
   unpackRGBA32, packRGBA32, luminanceOfRGBA32, rgba32OfLuminance
 
 ) where
@@ -29,7 +33,7 @@ import Data.Array.Accelerate.IO.ByteString      as A
 
 -- File IO ---------------------------------------------------------------------
 
--- | Read RGBA components from a BMP file
+-- | Read RGBA components from a BMP file.
 --
 readImageFromBMP :: FilePath -> IO (Either Error (Array DIM2 RGBA32))
 readImageFromBMP file = do
@@ -55,15 +59,15 @@ writeImageToBMP file rgba = do
 
 -- Manipulating pixels ---------------------------------------------------------
 --
--- TLM: this should be moved into something like:
---   accelerate-algorithms:Data.Array.Accelerate.Algorithms.Pixel
+-- TLM: perhaps this should be moved into something like:
+--      accelerate-algorithms:Data.Array.Accelerate.Algorithms.Pixel
 --
 
 -- | Packed RGBA pixel data
 --
 type RGBA32 = Word32
 
--- | Unpack a RGBA32 value into a tuple of (Red, Green, Blue, Alpha) values.
+-- | Unpack a 'RGBA32' value into a tuple of (Red, Green, Blue, Alpha) values.
 --
 unpackRGBA32 :: Exp RGBA32 -> Exp (Word8, Word8, Word8, Word8)
 unpackRGBA32 rgba =
@@ -75,7 +79,7 @@ unpackRGBA32 rgba =
   lift (r, g, b, a)
 
 
--- | Promote a tuple of (Red, Green, Blue, Alpha) values into a packed RGBA32
+-- | Promote a tuple of (Red, Green, Blue, Alpha) values into a packed 'RGBA32'
 -- value.
 --
 packRGBA32 :: Exp (Word8, Word8, Word8, Word8) -> Exp RGBA32

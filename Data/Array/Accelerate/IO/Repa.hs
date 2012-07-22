@@ -19,6 +19,18 @@
 
 module Data.Array.Accelerate.IO.Repa (
 
+  -- ** Data.Array.Repa
+  --
+  -- | This provides an efficient non-copying Repa manifest array representation
+  -- that can be passed directly to Accelerate.
+  --
+  -- The standard rules for dealing with manifest Repa arrays apply:
+  --
+  --  * If you want to have Repa 'R.computeP' directly into an Accelerate array,
+  --    the source array must have a delayed representation.
+  --
+  --  * If you want to copy between manifest arrays, use 'R.copyP' instead.
+  --
   A, Shapes,
   fromRepa, toRepa,
   computeAccS, computeAccP
@@ -36,7 +48,7 @@ import qualified Data.Array.Accelerate.Array.Sugar      as A
 
 -- | Index conversion and equivalence statement between Repa and Accelerate
 -- array shapes. That is, a n-dimensional Repa array will produce an
--- n-dimensional accelerate array of the same extent, and vice-versa.
+-- n-dimensional Accelerate array of the same extent, and vice-versa.
 --
 class (R.Shape r, A.Shape a) => Shapes r a | a -> r, r -> a where
   -- these are really equivalent representations, so unsafeCoerce would probably
@@ -57,11 +69,12 @@ instance Shapes sr sa => Shapes (sr R.:. Int) (sa A.:. Int) where
   toA (sr R.:. sz) = toA sr A.:. sz
 
 
--- | An implementation based on `Data.Array.Accelerate` arrays. The Accelerate
--- array implementation is based on type families and picks an efficient,
--- unboxed representation for every element type. Moreover, these arrays can be
--- handed efficiently (without copying) to Accelerate programs for, example,
--- further parallel computation on the GPU.
+-- | The representation tag for manifest arrays based on Data.Array.Accelerate.
+--
+-- The Accelerate array implementation is based on type families and picks an
+-- efficient, unboxed representation for every element type. Moreover, these
+-- arrays can be handed efficiently (without copying) to Accelerate programs
+-- for further computation.
 --
 data A
 
@@ -163,3 +176,4 @@ computeAccP
     -> m (R.Array A sh e)
 {-# INLINE computeAccP #-}
 computeAccP = R.computeP
+

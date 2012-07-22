@@ -13,11 +13,11 @@
 --
 
 module Data.Array.Accelerate.IO.Vector (
-    -- * Vector conversions
-    fromVector
-  , toVector
-  , fromVectorIO
-  , toVectorIO
+
+  -- ** Data.Vector.Storable
+  fromVector, toVector,
+  fromVectorIO, toVectorIO
+
 ) where
 
 import Data.Array.Accelerate ( arrayShape

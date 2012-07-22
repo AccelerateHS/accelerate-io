@@ -10,10 +10,10 @@
 
 module Data.Array.Accelerate.IO.Ptr (
 
-  -- * Copying to/from raw pointers
+  -- ** Raw pointers
   BlockPtrs, fromPtr, toPtr,
 
-  -- * Direct copying into/from an Accelerate array
+  -- ** Direct copying functions
   BlockCopyFun, BlockCopyFuns, fromArray, toArray
 
 ) where

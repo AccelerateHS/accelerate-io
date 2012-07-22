@@ -10,26 +10,29 @@
 -- This module provides efficient conversion routines between different array
 -- types and Accelerate arrays.
 --
--- The Repa interface provides an efficient non-copying instance for Repa to
--- read and write directly into arrays that can then be passed to Accelerate.
--- Additional copying conversions of low-level primitive arrays (i.e. one
--- dimensional, row-major blocks of contiguous memory) are provided, however to
--- use these you should really know what you are doing. Potential pitfalls
--- include:
---
---   * copying from memory your program doesn't have access to (e.g. it may be
---     unallocated, or not enough memory is allocated)
---
---   * memory alignment errors
---
 
 module Data.Array.Accelerate.IO (
 
-  module Data.Array.Accelerate.IO.ByteString,
-  module Data.Array.Accelerate.IO.BMP,
-  module Data.Array.Accelerate.IO.Ptr,
+  -- * Array libraries
   module Data.Array.Accelerate.IO.Repa,
   module Data.Array.Accelerate.IO.Vector,
+
+  -- * Specialised file IO
+  module Data.Array.Accelerate.IO.BMP,
+
+  -- * Low-level conversions
+  --
+  -- | Copying conversions of low-level primitive data, stored in
+  -- one-dimensional row-major blocks of contiguous memory. To use these, you
+  -- should really know what you are doing. Potential pitfalls include:
+  --
+  --   * copying from memory your program doesn't have access to (e.g. it may be
+  --     unallocated, or not enough memory is allocated)
+  --
+  --   * memory alignment errors
+  --
+  module Data.Array.Accelerate.IO.ByteString,
+  module Data.Array.Accelerate.IO.Ptr,
 
 ) where
 
