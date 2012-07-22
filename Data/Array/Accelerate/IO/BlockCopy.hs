@@ -15,7 +15,7 @@ module Data.Array.Accelerate.IO.BlockCopy (
   BlockCopyFun, BlockCopyFuns, BlockPtrs, ByteStrings,
 
   -- * The low-level machinery
-  allocateArray, blockCopyFunGenerator
+  allocateArray, blockCopy, blockCopyFunGenerator
 
 ) where
 
