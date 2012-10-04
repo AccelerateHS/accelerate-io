@@ -19,7 +19,7 @@ module Data.Array.Accelerate.IO.BMP (
   readImageFromBMP, writeImageToBMP,
 
   -- *** Manipulating pixels
-  unpackRGBA32, packRGBA32, luminanceOfRGBA32, rgba32OfLuminance
+  unpackRGBA32, packRGBA32, luminanceOfRGBA32, rgba32OfLuminance, rgba32OfFloat,
 
 ) where
 
@@ -115,4 +115,18 @@ rgba32OfLuminance val =
       a =     0xFF
   in
   r + g + b + a
+
+
+-- | Promote a tuple of (Red, Green, Blue, Alpha) values in the range [0..1]
+-- into a packed 'RGBA32'.
+--
+rgba32OfFloat :: (Elt a, IsFloating a) => Exp (a, a, a, a) -> Exp RGBA32
+rgba32OfFloat rgba =
+  let (r, g, b, a)      = unlift rgba
+      r'                = A.truncate (255 * r) * 0x1000000
+      g'                = A.truncate (255 * g) * 0x10000
+      b'                = A.truncate (255 * b) * 0x100
+      a'                = A.truncate (255 * a)
+  in
+  r' + g' + b' + a'
 
