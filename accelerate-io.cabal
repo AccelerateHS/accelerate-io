@@ -64,7 +64,20 @@ Library
 
   ghc-options:          -O2 -Wall -funbox-strict-fields
 
-  Extensions:           TypeFamilies
+  Extensions:           CPP
+                        EmptyDataDecls
+                        ExplicitForAll
+                        FlexibleContexts
+                        FlexibleInstances
+                        ForeignFunctionInterface
+                        FunctionalDependencies
+                        GADTs
+                        MagicHash
+                        MultiParamTypeClasses
+                        ScopedTypeVariables
+                        TypeFamilies
+                        TypeOperators
+                        UndecidableInstances
 
 Source-repository head
   Type:                 git
