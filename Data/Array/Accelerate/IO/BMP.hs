@@ -71,10 +71,10 @@ type RGBA32 = Word32
 --
 unpackRGBA32 :: Exp RGBA32 -> Exp (Word8, Word8, Word8, Word8)
 unpackRGBA32 rgba =
-  let r = A.fromIntegral $ (rgba `div` 0x1000000) .&. 0xFF
-      g = A.fromIntegral $ (rgba `div` 0x10000)   .&. 0xFF
-      b = A.fromIntegral $ (rgba `div` 0x100)     .&. 0xFF
-      a = A.fromIntegral $ rgba                   .&. 0xFF
+  let r = A.fromIntegral $ rgba                   .&. 0xFF
+      g = A.fromIntegral $ (rgba `div` 0x100)     .&. 0xFF
+      b = A.fromIntegral $ (rgba `div` 0x10000)   .&. 0xFF
+      a = A.fromIntegral $ (rgba `div` 0x1000000) .&. 0xFF
   in
   lift (r, g, b, a)
 
@@ -85,10 +85,10 @@ unpackRGBA32 rgba =
 packRGBA32 :: Exp (Word8, Word8, Word8, Word8) -> Exp RGBA32
 packRGBA32 rgba =
   let (r', g', b', a')  = unlift rgba
-      r                 = (A.fromIntegral r') * 0x1000000
-      g                 = (A.fromIntegral g') * 0x10000
-      b                 = (A.fromIntegral b') * 0x100
-      a                 = A.fromIntegral a'
+      r                 = A.fromIntegral r'
+      g                 = (A.fromIntegral g') * 0x100
+      b                 = (A.fromIntegral b') * 0x10000
+      a                 = (A.fromIntegral a') * 0x1000000
   in
   r + g + b + a
 
@@ -97,9 +97,9 @@ packRGBA32 rgba =
 --
 luminanceOfRGBA32 :: (Elt a, IsFloating a) => Exp RGBA32 -> Exp a
 luminanceOfRGBA32 rgba =
-  let r = 0.3  * A.fromIntegral ((rgba `div` 0x1000000) .&. 0xFF)
-      g = 0.59 * A.fromIntegral ((rgba `div` 0x10000)   .&. 0xFF)
-      b = 0.11 * A.fromIntegral ((rgba `div` 0x100)     .&. 0xFF)
+  let r = 0.3  * A.fromIntegral (rgba                 .&. 0xFF)
+      g = 0.59 * A.fromIntegral ((rgba `div` 0x100)   .&. 0xFF)
+      b = 0.11 * A.fromIntegral ((rgba `div` 0x10000) .&. 0xFF)
   in
   (r + g + b) / 255
 
@@ -109,10 +109,10 @@ luminanceOfRGBA32 rgba =
 rgba32OfLuminance :: (Elt a, IsFloating a) => Exp a -> Exp RGBA32
 rgba32OfLuminance val =
   let v = A.truncate (255 * val) -- (0 `A.max` val `A.min` 1)
-      r = v * 0x1000000
-      g = v * 0x10000
-      b = v * 0x100
-      a =     0xFF
+      r = v
+      g = v * 0x100
+      b = v * 0x10000
+      a =     0xFF000000
   in
   r + g + b + a
 
