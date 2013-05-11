@@ -68,20 +68,12 @@ Library
 
   ghc-options:          -O2 -Wall -funbox-strict-fields
 
-  Extensions:           CPP
-                        EmptyDataDecls
-                        ExplicitForAll
-                        FlexibleContexts
-                        FlexibleInstances
-                        ForeignFunctionInterface
-                        FunctionalDependencies
-                        GADTs
-                        MagicHash
-                        MultiParamTypeClasses
-                        ScopedTypeVariables
-                        TypeFamilies
-                        TypeOperators
-                        UndecidableInstances
+
+  -- Don't add the extensions list here. Instead, place individual LANGUAGE
+  -- pragmas in the files that require a specific extension. This means the
+  -- project loads in GHCi, and avoids extension clashes.
+  --
+  -- Extensions:
 
 Source-repository head
   Type:                 git
