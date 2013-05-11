@@ -5,8 +5,12 @@ Tested-with:            GHC >= 7.0.3
 Build-type:             Simple
 
 Synopsis:               Read and write Accelerate arrays in various formats
-Description:            This package provides efficient conversion routines between a range of array types
-                        and Accelerate arrays.
+Description:
+  This package provides efficient conversion routines between a range of array
+  types and Accelerate arrays.
+  .
+  Refer to the main /Accelerate/ package for more information:
+  <http://hackage.haskell.org/package/accelerate>
 
 License:                BSD3
 License-file:           LICENSE
@@ -15,7 +19,7 @@ Author:                 Manuel M T Chakravarty,
                         Sean Lee,
                         Trevor L. McDonell
 Maintainer:             Manuel M T Chakravarty <chak@cse.unsw.edu.au>
-Homepage:               http://www.cse.unsw.edu.au/~chak/project/accelerate/
+Homepage:               https://github.com/AccelerateHS/accelerate-io
 Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
 
 Category:               Compilers/Interpreters, Concurrency, Data
