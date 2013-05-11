@@ -22,7 +22,7 @@ Maintainer:             Manuel M T Chakravarty <chak@cse.unsw.edu.au>
 Homepage:               https://github.com/AccelerateHS/accelerate-io
 Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
 
-Category:               Compilers/Interpreters, Concurrency, Data
+Category:               Compilers/Interpreters, Concurrency, Data, Parallelism
 Stability:              Experimental
 
 Extra-source-files:     include/accelerate.h
