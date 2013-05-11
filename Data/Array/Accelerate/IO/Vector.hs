@@ -27,6 +27,7 @@ import Data.Int
 import Data.Word
 import Data.Vector.Storable
 import Foreign.Ptr
+import Foreign.C.Types
 import Foreign.ForeignPtr
 import System.IO.Unsafe
 import GHC.Base                                 ( Int(..), Int# )
@@ -49,22 +50,35 @@ import Data.Array.Accelerate.IO.BlockCopy
 --
 type family Vectors e
 
-type instance Vectors ()     = ()
-type instance Vectors Int    = Vector Int
-type instance Vectors Int8   = Vector Int8
-type instance Vectors Int16  = Vector Int16
-type instance Vectors Int32  = Vector Int32
-type instance Vectors Int64  = Vector Int64
-type instance Vectors Word   = Vector Word
-type instance Vectors Word8  = Vector Word8
-type instance Vectors Word16 = Vector Word16
-type instance Vectors Word32 = Vector Word32
-type instance Vectors Word64 = Vector Word64
-type instance Vectors Float  = Vector Float
-type instance Vectors Double = Vector Double
-type instance Vectors Bool   = Vector Word8
-type instance Vectors Char   = Vector Char
-type instance Vectors (a,b)  = (Vectors a, Vectors b)
+type instance Vectors ()      = ()
+type instance Vectors Int     = Vector Int
+type instance Vectors Int8    = Vector Int8
+type instance Vectors Int16   = Vector Int16
+type instance Vectors Int32   = Vector Int32
+type instance Vectors Int64   = Vector Int64
+type instance Vectors Word    = Vector Word
+type instance Vectors Word8   = Vector Word8
+type instance Vectors Word16  = Vector Word16
+type instance Vectors Word32  = Vector Word32
+type instance Vectors Word64  = Vector Word64
+type instance Vectors CShort  = Vector Int16
+type instance Vectors CUShort = Vector Word16
+type instance Vectors CInt    = Vector Int32
+type instance Vectors CUInt   = Vector Word32
+type instance Vectors CLong   = Vector Int64
+type instance Vectors CULong  = Vector Word64
+type instance Vectors CLLong  = Vector Int64
+type instance Vectors CULLong = Vector Word64
+type instance Vectors Float   = Vector Float
+type instance Vectors CFloat  = Vector Float
+type instance Vectors Double  = Vector Double
+type instance Vectors CDouble = Vector Double
+type instance Vectors Bool    = Vector Word8
+type instance Vectors Char    = Vector Char
+type instance Vectors CChar   = Vector Int8
+type instance Vectors CSChar  = Vector Int8
+type instance Vectors CUChar  = Vector Word8
+type instance Vectors (a,b)   = (Vectors a, Vectors b)
 
 
 -- | /O(n)/. Copy a set of storable vectors into freshly allocated Accelerate
@@ -85,21 +99,34 @@ fromVectors sh vecs = unsafePerformIO $! do
     base accPtr bytes vec       = unsafeWith vec $ \vecPtr -> blockCopy vecPtr accPtr bytes
 
     aux :: ArrayEltR e -> ArrayData e -> Vectors e -> IO ()
-    aux ArrayEltRunit   _  = return
-    aux ArrayEltRint    ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
-    aux ArrayEltRint8   ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRint16  ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRint32  ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRint64  ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRword   ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
-    aux ArrayEltRword8  ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRword16 ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRword32 ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRword64 ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRfloat  ad = base (ptrsOfArrayData ad) (box fLOAT_SCALE sizeA)
-    aux ArrayEltRdouble ad = base (ptrsOfArrayData ad) (box dOUBLE_SCALE sizeA)
-    aux ArrayEltRbool   ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRchar   ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRunit    _  = return
+    aux ArrayEltRint     ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
+    aux ArrayEltRint8    ad = base (ptrsOfArrayData ad) sizeA
+    aux ArrayEltRint16   ad = base (ptrsOfArrayData ad) (sizeA * 2)
+    aux ArrayEltRint32   ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRint64   ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRword    ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
+    aux ArrayEltRword8   ad = base (ptrsOfArrayData ad) sizeA
+    aux ArrayEltRword16  ad = base (ptrsOfArrayData ad) (sizeA * 2)
+    aux ArrayEltRword32  ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRword64  ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRcshort  ad = base (ptrsOfArrayData ad) (sizeA * 2)
+    aux ArrayEltRcushort ad = base (ptrsOfArrayData ad) (sizeA * 2)
+    aux ArrayEltRcint    ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRcuint   ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRclong   ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRculong  ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRcllong  ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRcullong ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRfloat   ad = base (ptrsOfArrayData ad) (box fLOAT_SCALE sizeA)
+    aux ArrayEltRcfloat  ad = base (ptrsOfArrayData ad) (box fLOAT_SCALE sizeA)
+    aux ArrayEltRdouble  ad = base (ptrsOfArrayData ad) (box dOUBLE_SCALE sizeA)
+    aux ArrayEltRcdouble ad = base (ptrsOfArrayData ad) (box dOUBLE_SCALE sizeA)
+    aux ArrayEltRbool    ad = base (ptrsOfArrayData ad) sizeA
+    aux ArrayEltRchar    ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRcchar   ad = base (ptrsOfArrayData ad) sizeA
+    aux ArrayEltRcschar  ad = base (ptrsOfArrayData ad) sizeA
+    aux ArrayEltRcuchar  ad = base (ptrsOfArrayData ad) sizeA
     aux (ArrayEltRpair ae1 ae2) (AD_Pair ad1 ad2) = \(v1, v2) -> do
       aux ae1 ad1 v1
       aux ae2 ad2 v2
@@ -123,21 +150,34 @@ toVectors array@(Array _ adata) = unsafePerformIO $! aux arrayElt adata
       return $! unsafeFromForeignPtr0 fp sizeA
 
     aux :: ArrayEltR e -> ArrayData e -> IO (Vectors e)
-    aux ArrayEltRunit   _  = return ()
-    aux ArrayEltRint    ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
-    aux ArrayEltRint8   ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRint16  ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRint32  ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRint64  ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRword   ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
-    aux ArrayEltRword8  ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRword16 ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRword32 ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRword64 ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRfloat  ad = base (ptrsOfArrayData ad) (box fLOAT_SCALE sizeA)
-    aux ArrayEltRdouble ad = base (ptrsOfArrayData ad) (box dOUBLE_SCALE sizeA)
-    aux ArrayEltRbool   ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRchar   ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRunit    _  = return ()
+    aux ArrayEltRint     ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
+    aux ArrayEltRint8    ad = base (ptrsOfArrayData ad) sizeA
+    aux ArrayEltRint16   ad = base (ptrsOfArrayData ad) (sizeA * 2)
+    aux ArrayEltRint32   ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRint64   ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRword    ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
+    aux ArrayEltRword8   ad = base (ptrsOfArrayData ad) sizeA
+    aux ArrayEltRword16  ad = base (ptrsOfArrayData ad) (sizeA * 2)
+    aux ArrayEltRword32  ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRword64  ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRcshort  ad = base (ptrsOfArrayData ad) (sizeA * 2)
+    aux ArrayEltRcushort ad = base (ptrsOfArrayData ad) (sizeA * 2)
+    aux ArrayEltRcint    ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRcuint   ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRclong   ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRculong  ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRcllong  ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRcullong ad = base (ptrsOfArrayData ad) (sizeA * 8)
+    aux ArrayEltRfloat   ad = base (ptrsOfArrayData ad) (box fLOAT_SCALE sizeA)
+    aux ArrayEltRcfloat  ad = base (ptrsOfArrayData ad) (box fLOAT_SCALE sizeA)
+    aux ArrayEltRdouble  ad = base (ptrsOfArrayData ad) (box dOUBLE_SCALE sizeA)
+    aux ArrayEltRcdouble ad = base (ptrsOfArrayData ad) (box dOUBLE_SCALE sizeA)
+    aux ArrayEltRbool    ad = base (ptrsOfArrayData ad) sizeA
+    aux ArrayEltRchar    ad = base (ptrsOfArrayData ad) (sizeA * 4)
+    aux ArrayEltRcchar   ad = base (ptrsOfArrayData ad) sizeA
+    aux ArrayEltRcschar  ad = base (ptrsOfArrayData ad) sizeA
+    aux ArrayEltRcuchar  ad = base (ptrsOfArrayData ad) sizeA
     aux (ArrayEltRpair ae1 ae2) (AD_Pair ad1 ad2) =
       do v1 <- aux ae1 ad1
          v2 <- aux ae2 ad2
