@@ -1,4 +1,9 @@
-{-# LANGUAGE GADTs, MagicHash, ForeignFunctionInterface, TypeFamilies, ScopedTypeVariables #-}
+{-# LANGUAGE CPP                      #-}
+{-# LANGUAGE GADTs                    #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE MagicHash                #-}
+{-# LANGUAGE ScopedTypeVariables      #-}
+{-# LANGUAGE TypeFamilies             #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.BlockCopy
 -- Copyright   : [2010..2011] Sean Seefried
@@ -66,8 +71,8 @@ type instance BlockCopyFuns CShort  = BlockCopyFun Int16
 type instance BlockCopyFuns CUShort = BlockCopyFun Word16
 type instance BlockCopyFuns CInt    = BlockCopyFun Int32
 type instance BlockCopyFuns CUInt   = BlockCopyFun Word32
-type instance BlockCopyFuns CLong   = BlockCopyFun Int64
-type instance BlockCopyFuns CULong  = BlockCopyFun Word64
+type instance BlockCopyFuns CLong   = BlockCopyFun HTYPE_LONG
+type instance BlockCopyFuns CULong  = BlockCopyFun HTYPE_UNSIGNED_LONG
 type instance BlockCopyFuns CLLong  = BlockCopyFun Int64
 type instance BlockCopyFuns CULLong = BlockCopyFun Word64
 type instance BlockCopyFuns Float   = BlockCopyFun Float
@@ -108,8 +113,8 @@ type instance BlockPtrs CShort  = Ptr Int16
 type instance BlockPtrs CUShort = Ptr Word16
 type instance BlockPtrs CInt    = Ptr Int32
 type instance BlockPtrs CUInt   = Ptr Word32
-type instance BlockPtrs CLong   = Ptr Int64
-type instance BlockPtrs CULong  = Ptr Word64
+type instance BlockPtrs CLong   = Ptr HTYPE_LONG
+type instance BlockPtrs CULong  = Ptr HTYPE_UNSIGNED_LONG
 type instance BlockPtrs CLLong  = Ptr Int64
 type instance BlockPtrs CULLong = Ptr Word64
 type instance BlockPtrs Float   = Ptr Float
