@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -65,8 +66,8 @@ type instance Vectors CShort  = Vector Int16
 type instance Vectors CUShort = Vector Word16
 type instance Vectors CInt    = Vector Int32
 type instance Vectors CUInt   = Vector Word32
-type instance Vectors CLong   = Vector Int64
-type instance Vectors CULong  = Vector Word64
+type instance Vectors CLong   = Vector HTYPE_LONG
+type instance Vectors CULong  = Vector HTYPE_UNSIGNED_LONG
 type instance Vectors CLLong  = Vector Int64
 type instance Vectors CULLong = Vector Word64
 type instance Vectors Float   = Vector Float

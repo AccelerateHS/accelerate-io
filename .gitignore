@@ -1,1 +1,6 @@
 dist/
+/configure
+/config.status
+/config.log
+/autom4te.cache/
+/accelerate-io.buildinfo

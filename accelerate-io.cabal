@@ -1,8 +1,8 @@
 Name:                   accelerate-io
 Version:                0.13.0.0
 Cabal-version:          >= 1.6
-Tested-with:            GHC >= 7.0.3
-Build-type:             Simple
+Tested-with:            GHC >= 7.4
+Build-type:             Custom
 
 Synopsis:               Read and write Accelerate arrays in various formats
 Description:
@@ -25,7 +25,15 @@ Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
 Category:               Compilers/Interpreters, Concurrency, Data, Parallelism
 Stability:              Experimental
 
-Extra-source-files:     include/accelerate.h
+Extra-tmp-files:        config.status
+                        config.log
+                        autom4te.cache
+                        accelerate-io.buildinfo
+
+Extra-source-files:     configure
+                        accelerate-io.buildinfo.in
+                        include/accelerate.h
+
 
 Flag bounds-checks
   Description:          Enable bounds checking
