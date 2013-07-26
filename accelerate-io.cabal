@@ -54,7 +54,8 @@ Library
                         base            == 4.*,
                         bmp             >= 1.2,
                         bytestring      >= 0.9,
-                        repa            >= 3.2,
+                        repa            >= 3.2 && < 3.2.3.2, 
+                          -- FIXME: temporary upper limit until test-framework-quickcheck2 allows QC 2.6 (otherwise, accelerate-examples falls over)
                         vector          >= 0.9
 
   Exposed-modules:      Data.Array.Accelerate.IO
