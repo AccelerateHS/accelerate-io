@@ -1,5 +1,5 @@
 Name:                   accelerate-io
-Version:                0.14.0.0
+Version:                0.15.0.0
 Cabal-version:          >= 1.6
 Tested-with:            GHC == 7.6.*
 Build-type:             Custom
@@ -49,7 +49,7 @@ Flag internal-checks
 
 Library
   Include-Dirs:         include
-  Build-depends:        accelerate      == 0.14.*,
+  Build-depends:        accelerate      == 0.15.*,
                         array           >= 0.3,
                         base            == 4.6.*,
                         bmp             >= 1.2,
