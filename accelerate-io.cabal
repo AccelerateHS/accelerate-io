@@ -1,7 +1,7 @@
 Name:                   accelerate-io
 Version:                0.14.0.0
 Cabal-version:          >= 1.6
-Tested-with:            GHC >= 7.4
+Tested-with:            GHC == 7.6.*
 Build-type:             Custom
 
 Synopsis:               Read and write Accelerate arrays in various formats
@@ -51,7 +51,7 @@ Library
   Include-Dirs:         include
   Build-depends:        accelerate      == 0.14.*,
                         array           >= 0.3,
-                        base            == 4.*,
+                        base            == 4.6.*,
                         bmp             >= 1.2,
                         bytestring      >= 0.9,
                         repa            >= 3.2,
