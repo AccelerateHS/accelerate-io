@@ -52,10 +52,10 @@ Library
   Build-depends:        accelerate      == 0.14.*,
                         array           >= 0.3,
                         base            == 4.6.*,
-                        bmp             >= 1.2,
-                        bytestring      >= 0.9,
-                        repa            >= 3.2,
-                        vector          >= 0.9
+                        bmp             >= 1.2          && < 1.3,
+                        bytestring      >= 0.9          && < 0.11,
+                        repa            >= 3.2          && < 3.3,
+                        vector          >= 0.9          && < 0.11
 
   Exposed-modules:      Data.Array.Accelerate.IO
   Other-modules:        Data.Array.Accelerate.IO.BlockCopy
