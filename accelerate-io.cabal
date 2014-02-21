@@ -51,7 +51,7 @@ Library
   Include-Dirs:         include
   Build-depends:        accelerate      == 0.15.*,
                         array           >= 0.3,
-                        base            == 4.6.*,
+                        base            >= 4.6 && < 4.8,
                         bmp             >= 1.2,
                         bytestring      >= 0.9,
                         repa            >= 3.2,
