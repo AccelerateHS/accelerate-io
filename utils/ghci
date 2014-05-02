@@ -1,24 +1,17 @@
 #!/bin/bash
 
-# Adjust to the installed location of ghci, if this script can not find it.
+# Get cabal to load up ghci for us. This will set the environment appropriately
+# if we have a local sandbox installation.
 #
-GHC=`which -a ghc`
-VER=`$GHC --numeric-version`
-GHC_FLAGS="--interactive"
+GHC="cabal exec ghc --"
 
-
-# We assume that the dependent packages are install with 'cabal'. If you have
-# installed them with another tool such as 'cabal-dev', add the following to the
-# command.
-#
-#    -package-conf cabal-dev/packages-$VER.conf
-
-# And go...
-#
-$GHC $GHC_FLAGS \
-     -DACCELERATE_BOUNDS_CHECKS \
-     -DACCELERATE_INTERNAL_CHECKS \
-     -DACCELERATE_DEBUG \
-     $@
+GHC_FLAGS="$GHC_FLAGS
+    --interactive
+    -DACCELERATE_BOUNDS_CHECKS
+    -DACCELERATE_INTERNAL_CHECKS
+    -DACCELERATE_DEBUG"
 
      # -optP-include -optPdist/build/autogen/cabal_macros.h \
+
+$GHC $GHC_FLAGS $@
+
