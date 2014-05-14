@@ -39,7 +39,6 @@ module Data.Array.Accelerate.IO.Repa (
 ) where
 
 import Control.Monad
-import Control.Monad.ST.Unsafe
 
 import qualified Data.Array.Repa                        as R
 import qualified Data.Array.Repa.Eval                   as R
@@ -113,20 +112,19 @@ instance A.Elt e => R.Source A e where
 --
 instance A.Elt e => R.Target A e where
   data MVec A e
-    = forall s. MAVec (A.MutableArrayData s (A.EltRepr e))
+    = MAVec (A.MutableArrayData (A.EltRepr e))
 
   {-# INLINE newMVec #-}
   newMVec n
-    = MAVec `liftM` unsafeSTToIO (A.newArrayData n)
+    = MAVec `liftM` A.newArrayData n
 
   {-# INLINE unsafeWriteMVec #-}
   unsafeWriteMVec (MAVec mad) n e
-    = unsafeSTToIO
-    $ A.unsafeWriteArrayData mad n (A.fromElt e)
+    = A.unsafeWriteArrayData mad n (A.fromElt e)
 
   {-# INLINE unsafeFreezeMVec #-}
   unsafeFreezeMVec sh (MAVec mad)
-    = do adata  <- unsafeSTToIO $ A.unsafeFreezeArrayData mad
+    = do adata  <- A.unsafeFreezeArrayData mad
          return $! AAccelerate sh adata
 
   {-# INLINE deepSeqMVec #-}
