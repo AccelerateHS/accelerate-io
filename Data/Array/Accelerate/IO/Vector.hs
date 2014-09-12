@@ -1,7 +1,5 @@
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE MagicHash           #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE GADTs        #-}
+{-# LANGUAGE TypeFamilies #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Vector
 -- Copyright   : [2012] Adam C. Foltzer, Trevor L. McDonell
@@ -11,7 +9,7 @@
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
--- Helpers for fast conversion of 'Data.Vector.Storable' vectors into
+-- Helpers for fast conversion between 'Data.Vector.Storable' vectors into
 -- Accelerate arrays.
 --
 
@@ -25,18 +23,13 @@ module Data.Array.Accelerate.IO.Vector (
 -- standard libraries
 import Data.Int
 import Data.Word
-import Data.Vector.Storable
-import Foreign.Ptr
 import Foreign.C.Types
-import Foreign.ForeignPtr
-import System.IO.Unsafe
-import GHC.Base                                 ( Int(..), Int# )
-import Data.Array.Base                          ( wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE )
+import Data.Vector.Storable
+import Data.Array.Storable.Internals                            ( StorableArray(..) )
 
 -- friends
 import Data.Array.Accelerate.Array.Data
-import Data.Array.Accelerate.Array.Sugar        hiding ( Vector )
-import Data.Array.Accelerate.IO.BlockCopy
+import Data.Array.Accelerate.Array.Sugar                        hiding ( Vector )
 
 
 -- | A family of types that represents a collection of storable 'Vector's. The
@@ -81,111 +74,90 @@ type instance Vectors CUChar  = Vector Word8
 type instance Vectors (a,b)   = (Vectors a, Vectors b)
 
 
--- | /O(n)/. Copy a set of storable vectors into freshly allocated Accelerate
--- arrays. The type of elements @e@ in the output Accelerate array determines
--- the structure of the collection that will be required as the second argument.
--- See 'Vectors'.
+-- | /O(1)/. Treat a set of storable vectors as Accelerate arrays. The type of
+-- elements @e@ in the output Accelerate array determines the structure  of the
+-- collection that will be required as the second argument. See 'Vectors'.
 --
 -- Data will be consumed from the vector in row-major order. You must make sure
--- that each of the input vectors contains the right number of elements.
+-- that each of the input vectors contains the right number of elements
 --
 fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
-fromVectors sh vecs = unsafePerformIO $! do
-  aux arrayElt adata vecs
-  return array
+fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
   where
-    sizeA                       = size sh
-    array@(Array _ adata)       = allocateArray sh
-    base accPtr bytes vec       = unsafeWith vec $ \vecPtr -> blockCopy vecPtr accPtr bytes
+    wrap k v = let (p,n) = unsafeToForeignPtr0 v
+               in  k (StorableArray 0 n n p)
 
-    aux :: ArrayEltR e -> ArrayData e -> Vectors e -> IO ()
-    aux ArrayEltRunit    _  = return
-    aux ArrayEltRint     ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
-    aux ArrayEltRint8    ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRint16   ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRint32   ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRint64   ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRword    ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
-    aux ArrayEltRword8   ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRword16  ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRword32  ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRword64  ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRcshort  ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRcushort ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRcint    ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRcuint   ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRclong   ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRculong  ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRcllong  ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRcullong ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRfloat   ad = base (ptrsOfArrayData ad) (box fLOAT_SCALE sizeA)
-    aux ArrayEltRcfloat  ad = base (ptrsOfArrayData ad) (box fLOAT_SCALE sizeA)
-    aux ArrayEltRdouble  ad = base (ptrsOfArrayData ad) (box dOUBLE_SCALE sizeA)
-    aux ArrayEltRcdouble ad = base (ptrsOfArrayData ad) (box dOUBLE_SCALE sizeA)
-    aux ArrayEltRbool    ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRchar    ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRcchar   ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRcschar  ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRcuchar  ad = base (ptrsOfArrayData ad) sizeA
-    aux (ArrayEltRpair ae1 ae2) (AD_Pair ad1 ad2) = \(v1, v2) -> do
-      aux ae1 ad1 v1
-      aux ae2 ad2 v2
+    aux :: ArrayEltR e -> Vectors e -> ArrayData e
+    aux ArrayEltRunit           = const AD_Unit
+    aux ArrayEltRint            = wrap AD_Int
+    aux ArrayEltRint8           = wrap AD_Int8
+    aux ArrayEltRint16          = wrap AD_Int16
+    aux ArrayEltRint32          = wrap AD_Int32
+    aux ArrayEltRint64          = wrap AD_Int64
+    aux ArrayEltRword           = wrap AD_Word
+    aux ArrayEltRword8          = wrap AD_Word8
+    aux ArrayEltRword16         = wrap AD_Word16
+    aux ArrayEltRword32         = wrap AD_Word32
+    aux ArrayEltRword64         = wrap AD_Word64
+    aux ArrayEltRcshort         = wrap AD_CShort
+    aux ArrayEltRcushort        = wrap AD_CUShort
+    aux ArrayEltRcint           = wrap AD_CInt
+    aux ArrayEltRcuint          = wrap AD_CUInt
+    aux ArrayEltRclong          = wrap AD_CLong
+    aux ArrayEltRculong         = wrap AD_CULong
+    aux ArrayEltRcllong         = wrap AD_CLLong
+    aux ArrayEltRcullong        = wrap AD_CULLong
+    aux ArrayEltRfloat          = wrap AD_Float
+    aux ArrayEltRdouble         = wrap AD_Double
+    aux ArrayEltRcfloat         = wrap AD_CFloat
+    aux ArrayEltRcdouble        = wrap AD_CDouble
+    aux ArrayEltRbool           = wrap AD_Bool
+    aux ArrayEltRchar           = wrap AD_Char
+    aux ArrayEltRcchar          = wrap AD_CChar
+    aux ArrayEltRcschar         = wrap AD_CSChar
+    aux ArrayEltRcuchar         = wrap AD_CUChar
+    aux (ArrayEltRpair ae1 ae2) = \(v1,v2) -> AD_Pair (aux ae1 v1) (aux ae2 v2)
 
 
--- | /O(n)/. Turn the Accelerate array into a collection of storable 'Vector's.
+-- | /O(1)/. Turn the Accelerate array into a collection of storable 'Vector's.
 -- The element type of the array @e@ will determine the structure of the output
 -- collection. See 'Vectors'.
 --
 -- Data will be output in row-major order.
 --
 toVectors :: (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
-toVectors array@(Array _ adata) = unsafePerformIO $! aux arrayElt adata
+toVectors (Array _ adata) = aux arrayElt adata
   where
-    sizeA       = size (shape array)
+    wrap (StorableArray _ _ n p) = unsafeFromForeignPtr0 p n
 
-    base :: Storable a => Ptr a -> Int -> IO (Vector a)
-    base accPtr bytes = do
-      fp     <- mallocForeignPtrBytes bytes
-      withForeignPtr fp $ \vecPtr -> blockCopy accPtr vecPtr bytes
-      return $! unsafeFromForeignPtr0 fp sizeA
-
-    aux :: ArrayEltR e -> ArrayData e -> IO (Vectors e)
-    aux ArrayEltRunit    _  = return ()
-    aux ArrayEltRint     ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
-    aux ArrayEltRint8    ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRint16   ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRint32   ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRint64   ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRword    ad = base (ptrsOfArrayData ad) (box wORD_SCALE sizeA)
-    aux ArrayEltRword8   ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRword16  ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRword32  ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRword64  ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRcshort  ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRcushort ad = base (ptrsOfArrayData ad) (sizeA * 2)
-    aux ArrayEltRcint    ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRcuint   ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRclong   ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRculong  ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRcllong  ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRcullong ad = base (ptrsOfArrayData ad) (sizeA * 8)
-    aux ArrayEltRfloat   ad = base (ptrsOfArrayData ad) (box fLOAT_SCALE sizeA)
-    aux ArrayEltRcfloat  ad = base (ptrsOfArrayData ad) (box fLOAT_SCALE sizeA)
-    aux ArrayEltRdouble  ad = base (ptrsOfArrayData ad) (box dOUBLE_SCALE sizeA)
-    aux ArrayEltRcdouble ad = base (ptrsOfArrayData ad) (box dOUBLE_SCALE sizeA)
-    aux ArrayEltRbool    ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRchar    ad = base (ptrsOfArrayData ad) (sizeA * 4)
-    aux ArrayEltRcchar   ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRcschar  ad = base (ptrsOfArrayData ad) sizeA
-    aux ArrayEltRcuchar  ad = base (ptrsOfArrayData ad) sizeA
-    aux (ArrayEltRpair ae1 ae2) (AD_Pair ad1 ad2) =
-      do v1 <- aux ae1 ad1
-         v2 <- aux ae2 ad2
-         return (v1, v2)
-
-
--- Helpers
---
-box :: (Int# -> Int#) -> Int -> Int
-box f (I# x) = I# (f x)
+    aux :: ArrayEltR e -> ArrayData e -> Vectors e
+    aux ArrayEltRunit           AD_Unit         = ()
+    aux ArrayEltRint            (AD_Int s)      = wrap s
+    aux ArrayEltRint8           (AD_Int8 s)     = wrap s
+    aux ArrayEltRint16          (AD_Int16 s)    = wrap s
+    aux ArrayEltRint32          (AD_Int32 s)    = wrap s
+    aux ArrayEltRint64          (AD_Int64 s)    = wrap s
+    aux ArrayEltRword           (AD_Word s)     = wrap s
+    aux ArrayEltRword8          (AD_Word8 s)    = wrap s
+    aux ArrayEltRword16         (AD_Word16 s)   = wrap s
+    aux ArrayEltRword32         (AD_Word32 s)   = wrap s
+    aux ArrayEltRword64         (AD_Word64 s)   = wrap s
+    aux ArrayEltRcshort         (AD_CShort s)   = wrap s
+    aux ArrayEltRcushort        (AD_CUShort s)  = wrap s
+    aux ArrayEltRcint           (AD_CInt s)     = wrap s
+    aux ArrayEltRcuint          (AD_CUInt s)    = wrap s
+    aux ArrayEltRclong          (AD_CLong s)    = wrap s
+    aux ArrayEltRculong         (AD_CULong s)   = wrap s
+    aux ArrayEltRcllong         (AD_CLLong s)   = wrap s
+    aux ArrayEltRcullong        (AD_CULLong s)  = wrap s
+    aux ArrayEltRfloat          (AD_Float s)    = wrap s
+    aux ArrayEltRdouble         (AD_Double s)   = wrap s
+    aux ArrayEltRcfloat         (AD_CFloat s)   = wrap s
+    aux ArrayEltRcdouble        (AD_CDouble s)  = wrap s
+    aux ArrayEltRbool           (AD_Bool s)     = wrap s
+    aux ArrayEltRchar           (AD_Char s)     = wrap s
+    aux ArrayEltRcchar          (AD_CChar s)    = wrap s
+    aux ArrayEltRcschar         (AD_CSChar s)   = wrap s
+    aux ArrayEltRcuchar         (AD_CUChar s)   = wrap s
+    aux (ArrayEltRpair ae1 ae2) (AD_Pair s1 s2) = (aux ae1 s1, aux ae2 s2)
 
