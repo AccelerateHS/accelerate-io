@@ -2,7 +2,8 @@
 {-# LANGUAGE TypeFamilies #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Vector
--- Copyright   : [2012] Adam C. Foltzer, Trevor L. McDonell
+-- Copyright   : [2012] Adam C. Foltzer
+--               [2012..2014] Trevor L. McDonell
 -- License     : BSD3
 --
 -- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
@@ -16,6 +17,10 @@
 module Data.Array.Accelerate.IO.Vector (
 
   -- ** Data.Vector.Storable
+  --
+  -- | This provides an efficient non-copying conversion between storable
+  -- vectors and Accelerate arrays.
+  --
   Vectors, toVectors, fromVectors,
 
 ) where
