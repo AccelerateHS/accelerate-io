@@ -76,7 +76,9 @@ Library
   --
   -- Extensions:
 
-Source-repository head
-  Type:                 git
-  Location:             git://github.com/AccelerateHS/accelerate-io.git
+Source-repository this
+  type:                 git
+  location:             git://github.com/AccelerateHS/accelerate-io.git
+  branch:               release/0.15
+  tag:                  0.15.0.0
 
