@@ -35,8 +35,8 @@ import Data.Array.Accelerate.Array.Sugar
 --
 fromPtr :: (Shape sh, Elt e) => sh -> BlockPtrs (EltRepr e) -> IO (Array sh e)
 fromPtr sh blkPtrs = do
-  let arr    = allocateArray sh
-      copier = let ((f,_),_,_) = blockCopyFunGenerator arr in f
+  arr   <- allocateArray sh
+  let copier = let ((f,_),_,_) = blockCopyFunGenerator arr in f
   copier blkPtrs
   return arr
 
@@ -94,8 +94,8 @@ fromArray arr blockCopyFuns = do
 --
 toArray :: (Shape sh, Elt e) => sh -> BlockCopyFuns (EltRepr e) -> IO (Array sh e)
 toArray sh blockCopyFuns = do
-  let arr    = allocateArray sh
-      copier = let (_,_,f) = blockCopyFunGenerator arr in f
+  arr <- allocateArray sh
+  let copier = let (_,_,f) = blockCopyFunGenerator arr in f
   copier blockCopyFuns
   return arr
 
