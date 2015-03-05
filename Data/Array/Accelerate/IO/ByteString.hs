@@ -29,8 +29,8 @@ import Data.Array.Accelerate.Array.Sugar
 --
 fromByteString :: (Shape sh, Elt e) => sh -> ByteStrings (EltRepr e) -> IO (Array sh e)
 fromByteString sh byteStrings = do
-  let arr    = allocateArray sh
-      copier = let ((_,f),_,_) = blockCopyFunGenerator arr in f
+  arr <- allocateArray sh
+  let copier = let ((_,f),_,_) = blockCopyFunGenerator arr in f
   copier byteStrings
   return arr
 
