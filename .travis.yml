@@ -27,7 +27,7 @@ before_install:
         fi
 
 install:
-    - ghc --version
+    - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
     - cabal --version
     - cabal install ${MODE} deps/*
     - cabal install --only-dependencies --enable-tests ${MODE}
