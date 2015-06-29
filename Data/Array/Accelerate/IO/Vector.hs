@@ -28,7 +28,6 @@ module Data.Array.Accelerate.IO.Vector (
 
 -- standard libraries
 import Data.Int
-import Data.IORef
 import Data.Word
 import Foreign.C.Types
 import Data.Vector.Storable
