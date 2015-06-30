@@ -72,10 +72,10 @@ type RGBA32 = Word32
 --
 unpackRGBA32 :: Exp RGBA32 -> Exp (Word8, Word8, Word8, Word8)
 unpackRGBA32 rgba =
-  let r = A.fromIntegral ((rgba `A.shiftR` 24) .&. 0xFF)
-      g = A.fromIntegral ((rgba `A.shiftR` 16) .&. 0xFF)
-      b = A.fromIntegral ((rgba `A.shiftR` 8)  .&. 0xFF)
-      a = A.fromIntegral (rgba                 .&. 0xFF)
+  let r = A.fromIntegral (rgba `A.shiftR` 24)
+      g = A.fromIntegral (rgba `A.shiftR` 16)
+      b = A.fromIntegral (rgba `A.shiftR` 8)
+      a = A.fromIntegral rgba
   in
   lift (r, g, b, a)
 
