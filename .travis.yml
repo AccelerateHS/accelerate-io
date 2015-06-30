@@ -3,6 +3,7 @@ env:
   global:
     - SHA_ACCELERATE=4d181866db677d0bb0fad0aa3224d8856c5a0911
     - URL_ACCELERATE=https://github.com/AccelerateHS/accelerate.git
+
   matrix:
     - GHC=7.8.4
     - GHC=7.10.1 CABAL=1.22
@@ -56,7 +57,7 @@ script:
         export SRC_TGZ=$(cabal info . | awk '{print $2 ".tar.gz";exit}')
         cd dist
         if [ -f "$SRC_TGZ" ]; then
-            cabal install --force-reinstalls ${MODE} ${SRC_TGZ}
+            cabal install --force-reinstalls ${MODE} ${SRC_TGZ} || exit 1
         else
             echo "'$SRC_TGZ': not found"
             exit 1
