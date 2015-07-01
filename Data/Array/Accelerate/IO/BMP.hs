@@ -1,4 +1,5 @@
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns        #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.BMP
 -- Copyright   : [2012..2014] Trevor L. McDonell
@@ -68,10 +69,23 @@ writeImageToBMP file rgba = do
 --
 type RGBA32 = Word32
 
--- | Unpack a 'RGBA32' value into a tuple of (Red, Green, Blue, Alpha) values.
+-- | Unpack a (little-endian) 'RGBA32' value into a tuple of (Red, Green, Blue,
+-- Alpha) values.
 --
-unpackRGBA32 :: Exp RGBA32 -> Exp (Word8, Word8, Word8, Word8)
-unpackRGBA32 rgba =
+unpackRGBA32, unpackRGBA32le, unpackRGBA32be
+    :: Exp RGBA32
+    -> Exp (Word8, Word8, Word8, Word8)
+unpackRGBA32 = unpackRGBA32le
+
+unpackRGBA32le rgba =
+  let a = A.fromIntegral (rgba `A.shiftR` 24)
+      b = A.fromIntegral (rgba `A.shiftR` 16)
+      g = A.fromIntegral (rgba `A.shiftR` 8)
+      r = A.fromIntegral rgba
+  in
+  lift (r, g, b, a)
+
+unpackRGBA32be rgba =
   let r = A.fromIntegral (rgba `A.shiftR` 24)
       g = A.fromIntegral (rgba `A.shiftR` 16)
       b = A.fromIntegral (rgba `A.shiftR` 8)
@@ -80,11 +94,21 @@ unpackRGBA32 rgba =
   lift (r, g, b, a)
 
 
--- | Promote a tuple of (Red, Green, Blue, Alpha) values into a packed 'RGBA32'
--- value.
+-- | Promote a tuple of (Red, Green, Blue, Alpha) values into a packed
+-- (little-endian) 'RGBA32' value.
 --
-packRGBA32 :: Exp (Word8, Word8, Word8, Word8) -> Exp RGBA32
-packRGBA32 (unlift -> (r, g, b, a))
+packRGBA32, packRGBA32le, packRGBA32be
+    :: Exp (Word8, Word8, Word8, Word8)
+    -> Exp RGBA32
+packRGBA32 = packRGBA32le
+
+packRGBA32le (unlift -> (r, g, b, a))
+   =  A.fromIntegral a `A.shiftL` 24
+  .|. A.fromIntegral b `A.shiftL` 16
+  .|. A.fromIntegral g `A.shiftL` 8
+  .|. A.fromIntegral r
+
+packRGBA32be (unlift -> (r, g, b, a))
    =  A.fromIntegral r `A.shiftL` 24
   .|. A.fromIntegral g `A.shiftL` 16
   .|. A.fromIntegral b `A.shiftL` 8
@@ -94,12 +118,12 @@ packRGBA32 (unlift -> (r, g, b, a))
 -- | Convert an RGBA colour to its luminance value in the range [0..1].
 --
 luminanceOfRGBA32 :: (Elt a, IsFloating a) => Exp RGBA32 -> Exp a
-luminanceOfRGBA32 rgba =
-  let r = 0.3  * A.fromIntegral ((rgba `A.shiftR` 24) .&. 0xFF)
-      g = 0.59 * A.fromIntegral ((rgba `A.shiftR` 16) .&. 0xFF)
-      b = 0.11 * A.fromIntegral ((rgba `A.shiftR` 8)  .&. 0xFF)
+luminanceOfRGBA32 (unlift . unpackRGBA32 -> (r, g, b, _a :: Exp Word8)) =
+  let r' = 0.3  * A.fromIntegral r
+      g' = 0.59 * A.fromIntegral g
+      b' = 0.11 * A.fromIntegral b
   in
-  (r + g + b) / 255
+  (r' + g' + b') / 255
 
 
 -- | Convert a value in the range [0..1] to a grey RGB colour.
