@@ -46,7 +46,7 @@ readImageFromBMP file = do
       let (w,h) = bmpDimensions bmp
           bs    = unpackBMPToRGBA32 bmp
       --
-      Right `fmap` A.fromByteString (Z :. h :. w) bs
+      Right `fmap` A.fromByteString (Z :. h :. w) ((), bs)
 
 
 -- | Write the image data to a file.
@@ -54,7 +54,7 @@ readImageFromBMP file = do
 writeImageToBMP :: FilePath -> Array DIM2 RGBA32 -> IO ()
 writeImageToBMP file rgba = do
   let Z :. h :. w       =  A.arrayShape rgba
-  bs                    <- A.toByteString rgba
+  ((), bs)              <- A.toByteString rgba
   --
   writeBMP file (packRGBA32ToBMP w h bs)
 
