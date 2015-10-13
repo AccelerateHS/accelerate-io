@@ -1,6 +1,5 @@
 {-# LANGUAGE GADTs        #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Vector
 -- Copyright   : [2012] Adam C. Foltzer
@@ -32,7 +31,6 @@ import Data.Word
 import Foreign.C.Types
 import Data.Vector.Storable
 import Data.Array.Storable.Internals                            ( StorableArray(..) )
-import System.IO.Unsafe
 
 -- friends
 import Data.Array.Accelerate.Array.Data
@@ -92,7 +90,7 @@ fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
 fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
   where
     wrap k v = let (p,n) = unsafeToForeignPtr0 v
-               in  k (unsafePerformIO $ uniqueFromStorable $ StorableArray 0 n n p)
+               in  k (StorableArray 0 n n p)
 
     aux :: ArrayEltR e -> Vectors e -> ArrayData e
     aux ArrayEltRunit           = const AD_Unit
@@ -135,7 +133,7 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
 toVectors :: (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
 toVectors (Array _ adata) = aux arrayElt adata
   where
-    wrap (storableFromUnique -> StorableArray _ _ n p) = unsafeFromForeignPtr0 p n
+    wrap (StorableArray _ _ n p) = unsafeFromForeignPtr0 p n
 
     aux :: ArrayEltR e -> ArrayData e -> Vectors e
     aux ArrayEltRunit           AD_Unit         = ()
