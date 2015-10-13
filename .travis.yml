@@ -1,12 +1,12 @@
 language: haskell
 env:
   global:
-    - SHA_ACCELERATE=4d181866db677d0bb0fad0aa3224d8856c5a0911
+    - SHA_ACCELERATE=11bde8004579b047c5dee97efec61fd05d0b79a1
     - URL_ACCELERATE=https://github.com/AccelerateHS/accelerate.git
 
   matrix:
     - GHC=7.8.4
-    - GHC=7.10.1 CABAL=1.22
+    - GHC=7.10.2 CABAL=1.22
     - GHC=head CABAL=head
 
 matrix:
@@ -16,7 +16,7 @@ matrix:
 before_install:
     # Fetch accelerate dependencies
     - echo "Checking out dependencies"
-    - travis_retry git clone ${URL_ACCELERATE} deps/accelerate
+    - travis_retry git clone -b release/0.15 ${URL_ACCELERATE} deps/accelerate
     - pushd deps/accelerate
     - git reset --hard ${SHA_ACCELERATE}
     - popd
