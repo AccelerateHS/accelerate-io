@@ -1,7 +1,7 @@
 Name:                   accelerate-io
-Version:                0.15.0.0
+Version:                0.15.1.0
 Cabal-version:          >= 1.6
-Tested-with:            GHC == 7.6.*
+Tested-with:            GHC >= 7.8
 Build-type:             Simple
 
 Synopsis:               Read and write Accelerate arrays in various formats
@@ -16,7 +16,7 @@ License:                BSD3
 License-file:           LICENSE
 Author:                 Manuel M T Chakravarty,
                         Gabriele Keller,
-                        Sean Lee,
+                        Sean Seefried,
                         Trevor L. McDonell
 Maintainer:             Manuel M T Chakravarty <chak@cse.unsw.edu.au>
 Homepage:               https://github.com/AccelerateHS/accelerate-io
@@ -24,8 +24,6 @@ Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
 
 Category:               Compilers/Interpreters, Concurrency, Data, Parallelism
 Stability:              Experimental
-
-Extra-source-files:     include/accelerate.h
 
 
 Flag bounds-checks
@@ -41,10 +39,9 @@ Flag internal-checks
   Default:              False
 
 Library
-  Include-Dirs:         include
-  Build-depends:        accelerate      == 0.15.*,
+  Build-depends:        accelerate      == 0.15.1.*,
                         array           >= 0.3,
-                        base            >= 4.6 && < 4.8,
+                        base            >= 4.7,
                         bmp             >= 1.2,
                         bytestring      >= 0.9,
                         repa            >= 3.2,
@@ -80,5 +77,5 @@ Source-repository this
   type:                 git
   location:             git://github.com/AccelerateHS/accelerate-io.git
   branch:               release/0.15
-  tag:                  0.15.0.0
+  tag:                  0.15.1.0
 
