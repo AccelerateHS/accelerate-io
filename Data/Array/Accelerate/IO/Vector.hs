@@ -37,6 +37,7 @@ import System.IO.Unsafe
 -- friends
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar                        hiding ( Vector )
+import Data.Array.Accelerate.Lifetime
 
 
 -- | A family of types that represents a collection of storable 'Vector's. The
@@ -135,7 +136,7 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
 toVectors :: (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
 toVectors (Array _ adata) = aux arrayElt adata
   where
-    wrap (storableFromUnique -> StorableArray _ _ n p) = unsafeFromForeignPtr0 p n
+    wrap (unsafeGetValue . storableFromUnique -> StorableArray _ _ n p) = unsafeFromForeignPtr0 p n
 
     aux :: ArrayEltR e -> ArrayData e -> Vectors e
     aux ArrayEltRunit           AD_Unit         = ()
@@ -167,4 +168,3 @@ toVectors (Array _ adata) = aux arrayElt adata
     aux ArrayEltRcschar         (AD_CSChar s)   = wrap s
     aux ArrayEltRcuchar         (AD_CUChar s)   = wrap s
     aux (ArrayEltRpair ae1 ae2) (AD_Pair s1 s2) = (aux ae1 s1, aux ae2 s2)
-

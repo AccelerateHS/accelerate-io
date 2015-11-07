@@ -1,7 +1,7 @@
 language: haskell
 env:
   global:
-    - SHA_ACCELERATE=4d181866db677d0bb0fad0aa3224d8856c5a0911
+    - SHA_ACCELERATE=e9d8c2f8dc57b369253525987c2a7bc61c58f647
     - URL_ACCELERATE=https://github.com/AccelerateHS/accelerate.git
 
   matrix:
@@ -65,4 +65,3 @@ script:
 
 after_failure:
     - dmesg
-
