@@ -4,7 +4,7 @@
 -- |
 -- Module      : Data.Array.Accelerate.IO.Vector
 -- Copyright   : [2012] Adam C. Foltzer
---               [2012..2014] Trevor L. McDonell
+--               [2012..2015] Trevor L. McDonell
 -- License     : BSD3
 --
 -- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
@@ -35,6 +35,7 @@ import Data.Array.Storable.Internals                            ( StorableArray(
 import System.IO.Unsafe
 
 -- friends
+import Data.Array.Accelerate.Lifetime
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar                        hiding ( Vector )
 
@@ -135,7 +136,8 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
 toVectors :: (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
 toVectors (Array _ adata) = aux arrayElt adata
   where
-    wrap (storableFromUnique -> StorableArray _ _ n p) = unsafeFromForeignPtr0 p n
+    wrap (unsafeGetValue . storableFromUnique -> StorableArray _ _ n p) =
+      unsafeFromForeignPtr0 p n
 
     aux :: ArrayEltR e -> ArrayData e -> Vectors e
     aux ArrayEltRunit           AD_Unit         = ()
