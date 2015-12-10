@@ -54,8 +54,8 @@ install:
   - stack --version
   - opt --version; true
   - llc --version; true
-  - travis_retry stack build --only-dependencies --no-terminal --haddock-deps -j2
+  - travis_retry stack build --only-dependencies --no-terminal --no-haddock-deps -j2
 
 script:
-  - stack build --haddock
+  - stack build --haddock --no-haddock-deps
 
