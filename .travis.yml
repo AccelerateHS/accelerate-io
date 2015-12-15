@@ -59,3 +59,8 @@ install:
 script:
   - stack build --haddock --no-haddock-deps
 
+notifications:
+  slack:
+    rooms:
+      secure: "LT5R4gZ6t/sAe6jEQ66T8Y3sq7emdw2oAEzKmS8v42w0C80uoUBxbuf0Wvoep9wdlRARTfGBfPc0fhewgKf3I1yH73kZ1ZMSzAitXaPtizuajuRvR4o2IrTNWqp1FzlIMWpjgKNB/N5ixcsp0N0rPMYtBlL51DLKPLQP3vcbr+M="
+
