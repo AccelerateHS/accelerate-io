@@ -1,6 +1,5 @@
 {-# LANGUAGE GADTs        #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Vector
 -- Copyright   : [2012] Adam C. Foltzer
@@ -31,13 +30,14 @@ import Data.Int
 import Data.Word
 import Foreign.C.Types
 import Data.Vector.Storable
-import Data.Array.Storable.Internals                            ( StorableArray(..) )
 import System.IO.Unsafe
 
 -- friends
 import Data.Array.Accelerate.Lifetime
+import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Array.Data
-import Data.Array.Accelerate.Array.Sugar                        hiding ( Vector )
+import Data.Array.Accelerate.Array.Sugar                        hiding ( Vector, size )
+import Data.Array.Accelerate.Array.Representation               ( size )
 
 
 -- | A family of types that represents a collection of storable 'Vector's. The
@@ -92,8 +92,8 @@ type instance Vectors (a,b)   = (Vectors a, Vectors b)
 fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
 fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
   where
-    wrap k v = let (p,n) = unsafeToForeignPtr0 v
-               in  k (unsafePerformIO $ uniqueFromStorable $ StorableArray 0 n n p)
+    wrap k v = let (fp,_) = unsafeToForeignPtr0 v
+               in  k (unsafePerformIO $ newUniqueArray fp)
 
     aux :: ArrayEltR e -> Vectors e -> ArrayData e
     aux ArrayEltRunit           = const AD_Unit
@@ -134,10 +134,10 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
 -- Data will be output in row-major order.
 --
 toVectors :: (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
-toVectors (Array _ adata) = aux arrayElt adata
+toVectors (Array sh adata) = aux arrayElt adata
   where
-    wrap (unsafeGetValue . storableFromUnique -> StorableArray _ _ n p) =
-      unsafeFromForeignPtr0 p n
+    wrap :: Storable a => UniqueArray a -> Vector a
+    wrap ua = unsafeFromForeignPtr0 (unsafeGetValue (uniqueArrayData ua)) (size sh)
 
     aux :: ArrayEltR e -> ArrayData e -> Vectors e
     aux ArrayEltRunit           AD_Unit         = ()
