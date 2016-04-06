@@ -1,7 +1,7 @@
 # For more information, see: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 # vim: nospell
 
-resolver: lts-3.15
+resolver: lts-5.11
 
 # Local packages, usually specified by relative directory name
 packages:
@@ -10,7 +10,7 @@ packages:
 # extra-deps:
 - location:
     git:    https://github.com/AccelerateHS/accelerate.git
-    commit: ab5892231cfd29734f48fdf139e30583d8074a18
+    commit: 171bab5fdd2c1de165fbdc37d57238002772ed1f
   extra-dep: true
 
 
