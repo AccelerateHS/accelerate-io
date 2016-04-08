@@ -4,7 +4,7 @@
 --               [2010..2014] Trevor L. McDonell
 -- License     : BSD3
 --
--- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
+-- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
