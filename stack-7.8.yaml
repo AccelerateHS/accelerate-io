@@ -3,20 +3,15 @@
 
 resolver: lts-2.22
 
-# Local packages, usually specified by relative directory name
 packages:
 - '.'
-
-# extra-deps:
 - location:
     git:    https://github.com/AccelerateHS/accelerate.git
-    commit: ab5892231cfd29734f48fdf139e30583d8074a18
+    commit: 171bab5fdd2c1de165fbdc37d57238002772ed1f
   extra-dep: true
 
 
-# Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
-- 'accelerate-2.0.0.0'
 - 'base-orphans-0.4.4'
 - 'unique-0'
 

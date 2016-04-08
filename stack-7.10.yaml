@@ -3,20 +3,15 @@
 
 resolver: lts-5.11
 
-# Local packages, usually specified by relative directory name
 packages:
 - '.'
-
-# extra-deps:
 - location:
     git:    https://github.com/AccelerateHS/accelerate.git
     commit: 171bab5fdd2c1de165fbdc37d57238002772ed1f
   extra-dep: true
 
 
-# Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
-- 'accelerate-2.0.0.0'
 - 'unique-0'
 
 # Override default flag values for local packages and extra-deps
