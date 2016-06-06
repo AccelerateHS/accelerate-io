@@ -86,7 +86,6 @@ instance A.Elt e => R.Source A e where
   data Array A sh e
     = AAccelerate !sh !(A.ArrayData (A.EltRepr e))
 
-
   {-# INLINE extent #-}
   extent (AAccelerate sh _)
     = sh
