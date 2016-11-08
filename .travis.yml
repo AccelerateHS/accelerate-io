@@ -4,7 +4,7 @@
 # directory to speed subsequent compilations.
 #
 language: generic
-dist: trusty
+dist: precise
 sudo: false
 
 cache:
