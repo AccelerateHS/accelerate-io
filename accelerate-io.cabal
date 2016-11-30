@@ -49,8 +49,9 @@ Library
 
   Exposed-modules:      Data.Array.Accelerate.IO
   Other-modules:        Data.Array.Accelerate.IO.BlockCopy
-                        Data.Array.Accelerate.IO.ByteString
                         Data.Array.Accelerate.IO.BMP
+                        Data.Array.Accelerate.IO.ByteString
+                        Data.Array.Accelerate.IO.IArray
                         Data.Array.Accelerate.IO.Ptr
                         Data.Array.Accelerate.IO.Repa
                         Data.Array.Accelerate.IO.Vector
