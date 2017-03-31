@@ -39,13 +39,14 @@ Flag internal-checks
   Default:              False
 
 Library
-  Build-depends:        accelerate      == 1.0.*,
-                        array           >= 0.3,
-                        base            >= 4.7,
-                        bmp             >= 1.2,
-                        bytestring      >= 0.9,
-                        repa            >= 3.2,
-                        vector          >= 0.9
+  Build-depends:
+          base            >= 4.7 && < 4.10
+        , accelerate      == 1.0.*
+        , array           >= 0.3
+        , bmp             >= 1.2
+        , bytestring      >= 0.9
+        , repa            >= 3.2
+        , vector          >= 0.9
 
   Exposed-modules:      Data.Array.Accelerate.IO
   Other-modules:        Data.Array.Accelerate.IO.BlockCopy
@@ -76,5 +77,10 @@ Library
 
 Source-repository head
   Type:                 git
+  Location:             git://github.com/AccelerateHS/accelerate-io.git
+
+Source-repository this
+  Type:                 git
+  Tag:                  1.0.0.0
   Location:             git://github.com/AccelerateHS/accelerate-io.git
 
