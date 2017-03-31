@@ -48,14 +48,22 @@ Library
         , repa            >= 3.2
         , vector          >= 0.9
 
-  Exposed-modules:      Data.Array.Accelerate.IO
-  Other-modules:        Data.Array.Accelerate.IO.BlockCopy
-                        Data.Array.Accelerate.IO.BMP
-                        Data.Array.Accelerate.IO.ByteString
-                        Data.Array.Accelerate.IO.IArray
-                        Data.Array.Accelerate.IO.Ptr
-                        Data.Array.Accelerate.IO.Repa
-                        Data.Array.Accelerate.IO.Vector
+  Exposed-modules:
+        Data.Array.Accelerate.IO
+
+  Other-modules:
+        Data.Array.Accelerate.IO.BlockCopy
+        Data.Array.Accelerate.IO.BMP
+        Data.Array.Accelerate.IO.ByteString
+        Data.Array.Accelerate.IO.IArray
+        Data.Array.Accelerate.IO.Ptr
+        Data.Array.Accelerate.IO.Repa
+        Data.Array.Accelerate.IO.Vector
+
+  ghc-options:
+        -O2
+        -Wall
+        -funbox-strict-fields
 
   if flag(bounds-checks)
     cpp-options:        -DACCELERATE_BOUNDS_CHECKS
@@ -65,9 +73,6 @@ Library
 
   if flag(internal-checks)
     cpp-options:        -DACCELERATE_INTERNAL_CHECKS
-
-  ghc-options:          -O2 -Wall -funbox-strict-fields
-
 
   -- Don't add the extensions list here. Instead, place individual LANGUAGE
   -- pragmas in the files that require a specific extension. This means the
@@ -83,4 +88,6 @@ Source-repository this
   Type:                 git
   Tag:                  1.0.0.0
   Location:             git://github.com/AccelerateHS/accelerate-io.git
+
+-- vim: nospell
 
