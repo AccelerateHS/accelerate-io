@@ -23,7 +23,6 @@ import Data.Array.Accelerate.IO.BlockCopy
 import Data.Array.Accelerate.Array.Sugar
 
 
-
 -- | Block copy regions of memory into a freshly allocated Accelerate array. The
 --   type of elements (@e@) in the output Accelerate array determines the
 --   structure of the collection of pointers that will be required as the second
