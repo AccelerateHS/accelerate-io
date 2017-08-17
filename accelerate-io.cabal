@@ -40,7 +40,7 @@ Flag internal-checks
 
 Library
   Build-depends:
-          base            >= 4.7 && < 4.10
+          base            >= 4.7 && < 4.11
         , accelerate      >= 1.0
         , array           >= 0.3
         , bmp             >= 1.2
