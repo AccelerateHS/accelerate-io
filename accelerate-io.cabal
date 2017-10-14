@@ -89,7 +89,7 @@ Source-repository head
 
 Source-repository this
   Type:                 git
-  Tag:                  1.0.0.0
+  Tag:                  1.0.0.1
   Location:             git://github.com/AccelerateHS/accelerate-io.git
 
 -- vim: nospell
