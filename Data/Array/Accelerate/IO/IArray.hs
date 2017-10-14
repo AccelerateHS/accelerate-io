@@ -39,10 +39,26 @@ fromIArray
     :: (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray a e, IArray.Ix ix, Shape sh, Elt ix, Elt e)
     => a ix e
     -> Array sh e
-fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr ix)
+fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr (offset lo' ix))
   where
     (lo,hi) = IArray.bounds iarr
-    sh      = rangeToShape (toIxShapeRepr lo, toIxShapeRepr hi)
+    lo'     = toIxShapeRepr lo
+    hi'     = toIxShapeRepr hi
+    sh      = rangeToShape (lo', hi')
+
+    -- IArray does not necessarily start indexing from zero. Thus, we need to
+    -- add some offset to the Accelerate indices to map them onto the valid
+    -- index range of the IArray
+    --
+    offset :: forall sh. Shape sh => sh -> sh -> sh
+    offset ix0 ix = toElt $ go (eltType (undefined::sh)) (fromElt ix0) (fromElt ix)
+      where
+        go :: TupleType ix -> ix -> ix -> ix
+        go UnitTuple                                                 ()       ()    = ()
+        go (PairTuple tl tr)                                         (l0, r0) (l,r) = (go tl l0 l, go tr r0 r)
+        go (SingleTuple (NumScalarType (IntegralNumType TypeInt{}))) i0       i     = i0+i
+        go _ _ _
+          = error "Data.Array.Accelerate.IO.IArray: error in index offset"
 
 -- | Convert an accelerated array to an 'IArray'.
 --
@@ -68,7 +84,7 @@ fromIxShapeRepr sh = toElt (go (eltType (undefined::ix)) (fromElt sh))
     go UnitTuple ()                                                         = ()
     go (SingleTuple     (NumScalarType (IntegralNumType TypeInt{}))) ((),h) = h
     go (PairTuple tt _) (t, h)                                              = (go tt t, h)
-    go _ _ = error "Not a valid IArray.Ix"
+    go _ _ = error "Data.Array.Accelerate.IO.IArray: not a valid IArray.Ix"
 
 toIxShapeRepr :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix) => ix -> sh
 toIxShapeRepr ix = toElt (go (eltType (undefined::ix)) (fromElt ix))
@@ -77,5 +93,5 @@ toIxShapeRepr ix = toElt (go (eltType (undefined::ix)) (fromElt ix))
     go UnitTuple        ()                                             = ()
     go (SingleTuple     (NumScalarType (IntegralNumType TypeInt{}))) h = ((), h)
     go (PairTuple tt _) (t, h)                                         = (go tt t, h)
-    go _ _ = error "Not a valid IArray.Ix"
+    go _ _ = error "Data.Array.Accelerate.IO.IArray: not a valid IArray.Ix"
 

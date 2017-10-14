@@ -2,18 +2,12 @@
 # vim: nospell
 
 resolver: lts-9.0
-allow-newer: true # repa
 
 packages:
 - '.'
 
-- location:
-    git:    https://github.com/tmcdonell/accelerate.git
-    commit: aee5f0232e2cfdcf030e2a7ca0570e9ced017d63
-  extra-dep: true
-
 extra-deps:
-- 'repa-3.4.1.2'
+- 'repa-3.4.1.3'
 
 # Override default flag values for local packages and extra-deps
 flags: {}
