@@ -6,12 +6,8 @@ resolver: lts-2.22
 packages:
 - '.'
 
-- location:
-    git:    https://github.com/tmcdonell/accelerate.git
-    commit: aee5f0232e2cfdcf030e2a7ca0570e9ced017d63
-  extra-dep: true
-
 extra-deps:
+- 'accelerate-1.1.1.0'
 - 'base-orphans-0.4.4'
 - 'th-lift-instances-0.1.11'
 - 'unique-0'
