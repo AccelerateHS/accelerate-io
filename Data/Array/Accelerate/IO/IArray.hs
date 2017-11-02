@@ -28,12 +28,17 @@ import Data.Array.IArray                                        ( IArray )
 import qualified Data.Array.IArray                              as IArray
 
 
--- | Convert an 'IArray' to an accelerated array.
+-- | /O(n)/ Convert an 'IArray' to an Accelerate 'Array'.
 --
--- While the type signature mentions Accelerate internals that are not exported,
--- in practice satisfying the type equality is straight forward. The index type
--- @ix@ must be the unit type @()@ for singleton arrays, or an @Int@ or tuple of
--- @Int@'s for multidimensional arrays.
+-- While the type signature mentions Accelerate internals, in practice
+-- satisfying the type equality is straight forward. The index type @ix@ must be
+-- the unit type @()@ for singleton arrays, or an @Int@ or tuple of @Int@'s for
+-- multidimensional arrays. For example:
+--
+-- > DIM0 ~ ()
+-- > DIM1 ~ Int
+-- > DIM2 ~ (Int,Int)
+-- > DIM3 ~ (Int,Int,Int)
 --
 fromIArray
     :: (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray a e, IArray.Ix ix, Shape sh, Elt ix, Elt e)
@@ -60,7 +65,10 @@ fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr (offset 
         go _ _ _
           = error "Data.Array.Accelerate.IO.IArray: error in index offset"
 
--- | Convert an accelerated array to an 'IArray'.
+
+-- | /O(n)/ Convert an Accelerate 'Array' to an 'IArray'.
+--
+-- See 'fromIArray' for a discussion on the expected shape types.
 --
 toIArray
     :: (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray a e, IArray.Ix ix, Shape sh, Elt ix)
