@@ -28,7 +28,7 @@ import Data.Array.IArray                                        ( IArray )
 import qualified Data.Array.IArray                              as IArray
 
 
--- | /O(n)/ Convert an 'IArray' to an Accelerate 'Array'.
+-- | /O(n)/. Convert an 'IArray' to an Accelerate 'Array'.
 --
 -- While the type signature mentions Accelerate internals, in practice
 -- satisfying the type equality is straight forward. The index type @ix@ must be
@@ -66,7 +66,7 @@ fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr (offset 
           = error "Data.Array.Accelerate.IO.IArray: error in index offset"
 
 
--- | /O(n)/ Convert an Accelerate 'Array' to an 'IArray'.
+-- | /O(n)/. Convert an Accelerate 'Array' to an 'IArray'.
 --
 -- See 'fromIArray' for a discussion on the expected shape types.
 --
