@@ -42,13 +42,15 @@ Library
   Exposed-modules:
         Data.Array.Accelerate.IO
 
+        -- Repa has a name space for its different representations; reuse this
+        Data.Array.Repa.Repr.Accelerate
+
   Other-modules:
         Data.Array.Accelerate.IO.BlockCopy
         Data.Array.Accelerate.IO.BMP
         Data.Array.Accelerate.IO.ByteString
         Data.Array.Accelerate.IO.IArray
         Data.Array.Accelerate.IO.Ptr
-        Data.Array.Accelerate.IO.Repa
         Data.Array.Accelerate.IO.Vector
 
   hs-source-dirs:

@@ -15,7 +15,6 @@
 module Data.Array.Accelerate.IO (
 
   -- * Array libraries
-  module Data.Array.Accelerate.IO.Repa,
   module Data.Array.Accelerate.IO.Vector,
   module Data.Array.Accelerate.IO.IArray,
 
@@ -42,6 +41,5 @@ import Data.Array.Accelerate.IO.BMP
 import Data.Array.Accelerate.IO.ByteString
 import Data.Array.Accelerate.IO.IArray
 import Data.Array.Accelerate.IO.Ptr
-import Data.Array.Accelerate.IO.Repa
 import Data.Array.Accelerate.IO.Vector
 
