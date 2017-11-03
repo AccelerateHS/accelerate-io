@@ -1,8 +1,9 @@
-{-# LANGUAGE CPP           #-}
-{-# LANGUAGE MagicHash     #-}
-{-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE MagicHash           #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE UnboxedTuples       #-}
 -- |
--- Module      : Data.Array.Accelerate.IO.Data.Vector.Internal
+-- Module      : Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
 -- Copyright   : [2017] Trevor L. McDonell
 -- License     : BSD3
 --
@@ -11,13 +12,34 @@
 -- Portability : non-portable (GHC extensions)
 --
 
-module Data.Array.Accelerate.IO.Data.Vector.Internal
+module Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
   where
 
+import Data.Primitive                                               ( sizeOf )
 import Data.Primitive.ByteArray
+
+import Data.Vector.Primitive
+
+import Data.Array.Accelerate.Array.Unique
+import Data.Array.Accelerate.Lifetime
 
 import GHC.Base
 import GHC.ForeignPtr
+
+
+-- Convert a primitive vector into a unique array
+--
+{-# INLINE uniqueArrayOfVector #-}
+uniqueArrayOfVector :: forall a. Prim a => Vector a -> IO (UniqueArray a)
+uniqueArrayOfVector (Vector o l ba) =
+  newUniqueArray =<< foreignPtrOfByteArray o (l * sizeOf (undefined::a)) ba
+
+-- Convert a unique array into a primitive vector
+--
+{-# INLINE vectorOfUniqueArray #-}
+vectorOfUniqueArray :: forall a. Prim a => Int -> UniqueArray a -> IO (Vector a)
+vectorOfUniqueArray n ua =
+  Vector 0 n <$> byteArrayOfForeignPtr (n * sizeOf (undefined::a)) (unsafeGetValue (uniqueArrayData ua))
 
 
 -- Return the ByteArray underlying a ForeignPtr, or a new byte array if it is

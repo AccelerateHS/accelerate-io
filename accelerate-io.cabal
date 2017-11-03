@@ -62,7 +62,7 @@ library
         Data.Array.Accelerate.IO.BlockCopy
         Data.Array.Accelerate.IO.Ptr
 
-        Data.Array.Accelerate.IO.Data.Vector.Internal
+        Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
 
   hs-source-dirs:
         src

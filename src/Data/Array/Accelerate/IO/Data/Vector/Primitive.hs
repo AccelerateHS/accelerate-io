@@ -1,6 +1,5 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies    #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Data.Vector.Primitive
 -- Copyright   : [2017] Trevor L. McDonell
@@ -22,16 +21,14 @@ module Data.Array.Accelerate.IO.Data.Vector.Primitive (
 
 ) where
 
-import Data.Primitive                                               ( sizeOf )
 import Data.Vector.Primitive
 
-import Data.Array.Accelerate.IO.Data.Vector.Internal
+import Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
 
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar                            hiding ( Vector )
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Error
-import Data.Array.Accelerate.Lifetime
 import qualified Data.Array.Accelerate.Array.Representation         as R
 
 import Data.Int
@@ -71,10 +68,10 @@ type instance Vectors (a,b)  = (Vectors a, Vectors b)
 fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
 fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
   where
-    wrap :: forall a. Prim a => Vector a -> UniqueArray a
-    wrap (Vector o l ba)
+    wrap :: Prim a => Vector a -> UniqueArray a
+    wrap v@(Vector _ l _)
       = $boundsCheck "fromVectors" "shape mismatch" (size sh == l)
-      $ unsafePerformIO $ newUniqueArray =<< foreignPtrOfByteArray o (l * sizeOf (undefined::a)) ba
+      $ unsafePerformIO (uniqueArrayOfVector v)
 
     aux :: ArrayEltR e -> Vectors e -> ArrayData e
     aux ArrayEltRunit           _       = AD_Unit
@@ -110,9 +107,8 @@ toVectors (Array sh adata) = aux arrayElt adata
     n :: Int
     n = R.size sh
 
-    wrap :: forall a. Prim a => UniqueArray a -> Vector a
-    wrap ua = Vector 0 n $ unsafePerformIO
-            $ byteArrayOfForeignPtr (n * sizeOf (undefined::a)) (unsafeGetValue (uniqueArrayData ua))
+    wrap :: Prim a => UniqueArray a -> Vector a
+    wrap ua = unsafePerformIO (vectorOfUniqueArray n ua)
 
     aux :: ArrayEltR e -> ArrayData e -> Vectors e
     aux ArrayEltRunit           AD_Unit         = ()
