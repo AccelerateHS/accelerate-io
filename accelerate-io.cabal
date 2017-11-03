@@ -40,7 +40,7 @@ library
         , vector          >= 0.9
 
   exposed-modules:
-        Data.Array.Accelerate.IO
+        Data.Array.Accelerate.IO.Codec.BMP
         Data.Array.Accelerate.IO.Data.ByteString
         Data.Array.Accelerate.IO.Data.Vector.Storable
         Data.Array.Accelerate.IO.Data.Array.IArray
@@ -50,7 +50,6 @@ library
 
   other-modules:
         Data.Array.Accelerate.IO.BlockCopy
-        Data.Array.Accelerate.IO.BMP
         Data.Array.Accelerate.IO.Ptr
 
   hs-source-dirs:
