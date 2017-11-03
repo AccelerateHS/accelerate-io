@@ -1,27 +1,24 @@
 {-# LANGUAGE GADTs        #-}
 {-# LANGUAGE TypeFamilies #-}
 -- |
--- Module      : Data.Array.Accelerate.IO.Vector
+-- Module      : Data.Array.Accelerate.IO.Vector.Storable
 -- Copyright   : [2012] Adam C. Foltzer
---               [2012..2015] Trevor L. McDonell
+--               [2012..2017] Trevor L. McDonell
 -- License     : BSD3
 --
 -- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
--- Helpers for fast conversion between 'Data.Vector.Storable' vectors into
--- Accelerate arrays.
+-- Efficient non-copying conversion between 'Data.Vector.Storable' vectors and
+-- Accelerate 'Array's.
 --
 
-module Data.Array.Accelerate.IO.Vector (
+module Data.Array.Accelerate.IO.Vector.Storable (
 
-  -- ** Data.Vector.Storable
-  --
-  -- | This provides an efficient non-copying conversion between storable
-  -- vectors and Accelerate arrays.
-  --
-  Vectors, toVectors, fromVectors,
+  Vectors,
+  toVectors,
+  fromVectors,
 
 ) where
 

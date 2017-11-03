@@ -29,8 +29,8 @@ Extra-source-files:
     README.md
     CHANGELOG.md
 
-Library
-  Build-depends:
+library
+  build-depends:
           base            >= 4.7 && < 4.11
         , accelerate      >= 1.0
         , array           >= 0.3
@@ -39,19 +39,19 @@ Library
         , repa            >= 3.2
         , vector          >= 0.9
 
-  Exposed-modules:
+  exposed-modules:
         Data.Array.Accelerate.IO
+        Data.Array.Accelerate.IO.Vector.Storable
 
         -- Repa has a name space for its different representations; reuse this
         Data.Array.Repa.Repr.Accelerate
 
-  Other-modules:
+  other-modules:
         Data.Array.Accelerate.IO.BlockCopy
         Data.Array.Accelerate.IO.BMP
         Data.Array.Accelerate.IO.ByteString
         Data.Array.Accelerate.IO.IArray
         Data.Array.Accelerate.IO.Ptr
-        Data.Array.Accelerate.IO.Vector
 
   hs-source-dirs:
         src
@@ -61,11 +61,11 @@ Library
         -Wall
         -funbox-strict-fields
 
-Source-repository head
+source-repository head
   Type:                 git
   Location:             git://github.com/AccelerateHS/accelerate-io.git
 
-Source-repository this
+source-repository this
   Type:                 git
   Tag:                  1.1.0.0
   Location:             git://github.com/AccelerateHS/accelerate-io.git
