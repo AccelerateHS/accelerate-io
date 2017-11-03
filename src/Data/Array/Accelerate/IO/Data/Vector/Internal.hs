@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP           #-}
 {-# LANGUAGE MagicHash     #-}
 {-# LANGUAGE UnboxedTuples #-}
 -- |
@@ -45,4 +46,10 @@ foreignPtrOfByteArray (I# soff#) (I# bytes#) (ByteArray ba#) = IO $ \s ->
                                 s2 -> (# s2, ForeignPtr (byteArrayContents# (unsafeCoerce# mba#)) (PlainPtr mba#) #)
 
     _  -> (# s, ForeignPtr (byteArrayContents# ba#) (PlainPtr (unsafeCoerce# ba#)) #)
+
+
+#if !MIN_VERSION_base(4,10,0)
+isByteArrayPinned# :: ByteArray# -> Int#
+isByteArrayPinned# _ = 0#
+#endif
 

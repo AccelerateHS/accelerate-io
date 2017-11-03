@@ -38,7 +38,6 @@ import Data.Int
 import Data.Word
 import System.IO.Unsafe
 
-
 -- | A family of types which represent a collection of Primitive Vectors. The
 -- structure of the collection depends on the element type @e@ of the
 -- corresponding Accelerate array.

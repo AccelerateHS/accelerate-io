@@ -48,8 +48,9 @@ library
         Data.Array.Accelerate.IO.Data.ByteString
 
         -- vector
-        Data.Array.Accelerate.IO.Data.Vector.Storable
         Data.Array.Accelerate.IO.Data.Vector.Primitive
+        Data.Array.Accelerate.IO.Data.Vector.Storable
+        Data.Array.Accelerate.IO.Data.Vector.Unboxed
 
         -- array
         Data.Array.Accelerate.IO.Data.Array.IArray
