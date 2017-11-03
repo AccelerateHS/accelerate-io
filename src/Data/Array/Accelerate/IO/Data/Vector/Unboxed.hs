@@ -30,6 +30,7 @@ import Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
 
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar                            as A hiding ( Vector )
+import Data.Array.Accelerate.Data.Complex
 import Data.Array.Accelerate.Error
 import qualified Data.Array.Accelerate.Array.Representation         as R
 
@@ -193,6 +194,10 @@ instance (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f) => Unbox (a, b, 
           (toUnboxed' n d)
           (toUnboxed' n e)
           (toUnboxed' n f)
+
+instance Unbox a => Unbox (Complex a) where
+  fromUnboxed' (V_Complex v2) = fromUnboxed' v2
+  toUnboxed' n v2 = V_Complex (toUnboxed' n v2)
 
 
 {--
