@@ -17,30 +17,156 @@
 
 module Data.Array.Accelerate.IO.Data.Vector.Unboxed (
 
-  Vectors,
-  toVectors,
-  fromVectors,
+  toUnboxed,
+  fromUnboxed,
+
+  ToUnboxed(..),
+  FromUnboxed(..),
 
 ) where
 
-import Data.Primitive                                               ( sizeOf )
-import Data.Vector.Unboxed
 import Data.Vector.Unboxed.Base
-import qualified Data.Vector.Primitive                              as P
+import qualified Data.Vector.Unboxed                                as U
 
-import Data.Array.Accelerate.IO.Data.Vector.Internal
+import Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
 
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar                            hiding ( Vector )
-import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Error
-import Data.Array.Accelerate.Lifetime
 import qualified Data.Array.Accelerate.Array.Representation         as R
 
 import Data.Int
 import Data.Word
-import System.IO.Unsafe
 
+
+-- | /O(n)/ (typically). Convert an Unboxed vector into an Accelerate array
+-- Accelerate array.
+--
+-- If the underlying vectors are pinned then this can be done without copying.
+--
+-- @since 1.1.0.0@
+--
+fromUnboxed :: (Shape sh, FromUnboxed e) => sh -> Vector e -> Array sh e
+fromUnboxed sh v
+  = $boundsCheck "fromUnboxed" "shape mismatch" (size sh == U.length v)
+  $ Array (fromElt sh) (fromUnboxed' v)
+
+
+-- | /O(1)/ (typically). Convert an Accelerate array into an Unboxed vector.
+--
+-- If the array data was allocated by Accelerate, this can typically be done
+-- without copying.
+--
+-- @since 1.1.0.0@
+--
+toUnboxed :: (Shape sh, ToUnboxed e) => Array sh e -> Vector e
+toUnboxed (Array sh adata)
+  = toUnboxed' (R.size sh) adata
+
+
+-- Instances
+-- ---------
+
+class (Unbox e, Elt e) => FromUnboxed e where
+  fromUnboxed' :: Vector e -> ArrayData (EltRepr e)
+
+instance FromUnboxed Int    where fromUnboxed' (V_Int v)    = AD_Int    (uniqueArrayOfVector v)
+instance FromUnboxed Int8   where fromUnboxed' (V_Int8 v)   = AD_Int8   (uniqueArrayOfVector v)
+instance FromUnboxed Int16  where fromUnboxed' (V_Int16 v)  = AD_Int16  (uniqueArrayOfVector v)
+instance FromUnboxed Int32  where fromUnboxed' (V_Int32 v)  = AD_Int32  (uniqueArrayOfVector v)
+instance FromUnboxed Int64  where fromUnboxed' (V_Int64 v)  = AD_Int64  (uniqueArrayOfVector v)
+instance FromUnboxed Word   where fromUnboxed' (V_Word v)   = AD_Word   (uniqueArrayOfVector v)
+instance FromUnboxed Word8  where fromUnboxed' (V_Word8 v)  = AD_Word8  (uniqueArrayOfVector v)
+instance FromUnboxed Word16 where fromUnboxed' (V_Word16 v) = AD_Word16 (uniqueArrayOfVector v)
+instance FromUnboxed Word32 where fromUnboxed' (V_Word32 v) = AD_Word32 (uniqueArrayOfVector v)
+instance FromUnboxed Word64 where fromUnboxed' (V_Word64 v) = AD_Word64 (uniqueArrayOfVector v)
+instance FromUnboxed Float  where fromUnboxed' (V_Float v)  = AD_Float  (uniqueArrayOfVector v)
+instance FromUnboxed Double where fromUnboxed' (V_Double v) = AD_Double (uniqueArrayOfVector v)
+instance FromUnboxed Char   where fromUnboxed' (V_Char v)   = AD_Char   (uniqueArrayOfVector v)
+instance FromUnboxed Bool   where fromUnboxed' (V_Bool v)   = AD_Bool   (uniqueArrayOfVector v)
+
+instance FromUnboxed ()  where
+  fromUnboxed' V_Unit{} = AD_Unit
+
+instance (FromUnboxed a, FromUnboxed b) => FromUnboxed (a, b) where
+  fromUnboxed' (V_2 _ a b) =
+    AD_Unit `AD_Pair` fromUnboxed' a
+            `AD_Pair` fromUnboxed' b
+
+instance (FromUnboxed a, FromUnboxed b, FromUnboxed c) => FromUnboxed (a, b, c) where
+  fromUnboxed' (V_3 _ a b c) =
+    AD_Unit `AD_Pair` fromUnboxed' a
+            `AD_Pair` fromUnboxed' b
+            `AD_Pair` fromUnboxed' c
+
+instance (FromUnboxed a, FromUnboxed b, FromUnboxed c, FromUnboxed d) => FromUnboxed (a, b, c, d) where
+  fromUnboxed' (V_4 _ a b c d) =
+    AD_Unit `AD_Pair` fromUnboxed' a
+            `AD_Pair` fromUnboxed' b
+            `AD_Pair` fromUnboxed' c
+            `AD_Pair` fromUnboxed' d
+
+instance (FromUnboxed a, FromUnboxed b, FromUnboxed c, FromUnboxed d, FromUnboxed e) => FromUnboxed (a, b, c, d, e) where
+  fromUnboxed' (V_5 _ a b c d e) =
+    AD_Unit `AD_Pair` fromUnboxed' a
+            `AD_Pair` fromUnboxed' b
+            `AD_Pair` fromUnboxed' c
+            `AD_Pair` fromUnboxed' d
+            `AD_Pair` fromUnboxed' e
+
+instance (FromUnboxed a, FromUnboxed b, FromUnboxed c, FromUnboxed d, FromUnboxed e, FromUnboxed f) => FromUnboxed (a, b, c, d, e, f) where
+  fromUnboxed' (V_6 _ a b c d e f) =
+    AD_Unit `AD_Pair` fromUnboxed' a
+            `AD_Pair` fromUnboxed' b
+            `AD_Pair` fromUnboxed' c
+            `AD_Pair` fromUnboxed' d
+            `AD_Pair` fromUnboxed' e
+            `AD_Pair` fromUnboxed' f
+
+
+class (Unbox e, Elt e) => ToUnboxed e where
+  toUnboxed' :: Int -> ArrayData (EltRepr e) -> Vector e
+
+instance ToUnboxed Int    where toUnboxed' n (AD_Int v)    = V_Int    (vectorOfUniqueArray n v)
+instance ToUnboxed Int8   where toUnboxed' n (AD_Int8 v)   = V_Int8   (vectorOfUniqueArray n v)
+instance ToUnboxed Int16  where toUnboxed' n (AD_Int16 v)  = V_Int16  (vectorOfUniqueArray n v)
+instance ToUnboxed Int32  where toUnboxed' n (AD_Int32 v)  = V_Int32  (vectorOfUniqueArray n v)
+instance ToUnboxed Int64  where toUnboxed' n (AD_Int64 v)  = V_Int64  (vectorOfUniqueArray n v)
+instance ToUnboxed Word   where toUnboxed' n (AD_Word v)   = V_Word   (vectorOfUniqueArray n v)
+instance ToUnboxed Word8  where toUnboxed' n (AD_Word8 v)  = V_Word8  (vectorOfUniqueArray n v)
+instance ToUnboxed Word16 where toUnboxed' n (AD_Word16 v) = V_Word16 (vectorOfUniqueArray n v)
+instance ToUnboxed Word32 where toUnboxed' n (AD_Word32 v) = V_Word32 (vectorOfUniqueArray n v)
+instance ToUnboxed Word64 where toUnboxed' n (AD_Word64 v) = V_Word64 (vectorOfUniqueArray n v)
+instance ToUnboxed Float  where toUnboxed' n (AD_Float v)  = V_Float  (vectorOfUniqueArray n v)
+instance ToUnboxed Double where toUnboxed' n (AD_Double v) = V_Double (vectorOfUniqueArray n v)
+instance ToUnboxed Char   where toUnboxed' n (AD_Char v)   = V_Char   (vectorOfUniqueArray n v)
+instance ToUnboxed Bool   where toUnboxed' n (AD_Bool v)   = V_Bool   (vectorOfUniqueArray n v)
+
+instance ToUnboxed () where
+  toUnboxed' n AD_Unit = V_Unit n
+
+instance (ToUnboxed a, ToUnboxed b) => ToUnboxed (a, b) where
+  toUnboxed' n (AD_Unit `AD_Pair` a `AD_Pair` b) =
+    V_2 n (toUnboxed' n a) (toUnboxed' n b)
+
+instance (ToUnboxed a, ToUnboxed b, ToUnboxed c) => ToUnboxed (a, b, c) where
+  toUnboxed' n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c) =
+    V_3 n (toUnboxed' n a) (toUnboxed' n b) (toUnboxed' n c)
+
+instance (ToUnboxed a, ToUnboxed b, ToUnboxed c, ToUnboxed d) => ToUnboxed (a, b, c, d) where
+  toUnboxed' n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c `AD_Pair` d) =
+    V_4 n (toUnboxed' n a) (toUnboxed' n b) (toUnboxed' n c) (toUnboxed' n d)
+
+instance (ToUnboxed a, ToUnboxed b, ToUnboxed c, ToUnboxed d, ToUnboxed e) => ToUnboxed (a, b, c, d, e) where
+  toUnboxed' n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c `AD_Pair` d `AD_Pair` e) =
+    V_5 n (toUnboxed' n a) (toUnboxed' n b) (toUnboxed' n c) (toUnboxed' n d) (toUnboxed' n e)
+
+instance (ToUnboxed a, ToUnboxed b, ToUnboxed c, ToUnboxed d, ToUnboxed e, ToUnboxed f) => ToUnboxed (a, b, c, d, e, f) where
+  toUnboxed' n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c `AD_Pair` d `AD_Pair` e `AD_Pair` f) =
+    V_6 n (toUnboxed' n a) (toUnboxed' n b) (toUnboxed' n c) (toUnboxed' n d) (toUnboxed' n e) (toUnboxed' n f)
+
+
+{--
 -- | A family of types which represent a collection of Primitive Vectors. The
 -- structure of the collection depends on the element type @e@ of the
 -- corresponding Accelerate array.
@@ -79,9 +205,9 @@ fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
 fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
   where
     wrap :: forall a. P.Prim a => P.Vector a -> UniqueArray a
-    wrap (P.Vector o l ba)
+    wrap v@(P.Vector _ l _)
       = $boundsCheck "fromVectors" "shape mismatch" (size sh == l)
-      $ unsafePerformIO $ newUniqueArray =<< foreignPtrOfByteArray o (l * sizeOf (undefined::a)) ba
+      $ uniqueArrayOfVector v
     --
     aux :: ArrayEltR e -> Vectors e -> ArrayData e
     aux ArrayEltRunit           ()           = AD_Unit
@@ -123,8 +249,7 @@ toVectors (Array sh adata) = aux arrayElt adata
     n = R.size sh
 
     wrap :: forall a. P.Prim a => UniqueArray a -> P.Vector a
-    wrap ua = P.Vector 0 n $ unsafePerformIO
-            $ byteArrayOfForeignPtr (n * sizeOf (undefined::a)) (unsafeGetValue (uniqueArrayData ua))
+    wrap ua = vectorOfUniqueArray n ua
 
     aux :: ArrayEltR e -> ArrayData e -> Vectors e
     aux ArrayEltRunit           AD_Unit         = ()
@@ -145,5 +270,5 @@ toVectors (Array sh adata) = aux arrayElt adata
     aux (ArrayEltRpair ad1 ad2) (AD_Pair v1 v2) = (aux ad1 v1, aux ad2 v2)
     --
     aux _ _ = $internalError "toVectors" "unsupported type"
-
+--}
 

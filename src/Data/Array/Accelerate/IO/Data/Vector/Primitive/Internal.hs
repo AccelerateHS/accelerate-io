@@ -25,21 +25,24 @@ import Data.Array.Accelerate.Lifetime
 
 import GHC.Base
 import GHC.ForeignPtr
+import GHC.IO.Unsafe
 
 
 -- Convert a primitive vector into a unique array
 --
 {-# INLINE uniqueArrayOfVector #-}
-uniqueArrayOfVector :: forall a. Prim a => Vector a -> IO (UniqueArray a)
-uniqueArrayOfVector (Vector o l ba) =
-  newUniqueArray =<< foreignPtrOfByteArray o (l * sizeOf (undefined::a)) ba
+uniqueArrayOfVector :: forall a. Prim a => Vector a -> UniqueArray a
+uniqueArrayOfVector (Vector o l ba)
+  = unsafePerformIO
+  $ newUniqueArray =<< foreignPtrOfByteArray o (l * sizeOf (undefined::a)) ba
 
 -- Convert a unique array into a primitive vector
 --
 {-# INLINE vectorOfUniqueArray #-}
-vectorOfUniqueArray :: forall a. Prim a => Int -> UniqueArray a -> IO (Vector a)
-vectorOfUniqueArray n ua =
-  Vector 0 n <$> byteArrayOfForeignPtr (n * sizeOf (undefined::a)) (unsafeGetValue (uniqueArrayData ua))
+vectorOfUniqueArray :: forall a. Prim a => Int -> UniqueArray a -> Vector a
+vectorOfUniqueArray n ua
+  = unsafePerformIO
+  $ Vector 0 n <$> byteArrayOfForeignPtr (n * sizeOf (undefined::a)) (unsafeGetValue (uniqueArrayData ua))
 
 
 -- Return the ByteArray underlying a ForeignPtr, or a new byte array if it is

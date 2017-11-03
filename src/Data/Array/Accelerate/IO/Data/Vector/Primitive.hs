@@ -33,7 +33,7 @@ import qualified Data.Array.Accelerate.Array.Representation         as R
 
 import Data.Int
 import Data.Word
-import System.IO.Unsafe
+
 
 -- | A family of types which represent a collection of Primitive Vectors. The
 -- structure of the collection depends on the element type @e@ of the
@@ -71,7 +71,7 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
     wrap :: Prim a => Vector a -> UniqueArray a
     wrap v@(Vector _ l _)
       = $boundsCheck "fromVectors" "shape mismatch" (size sh == l)
-      $ unsafePerformIO (uniqueArrayOfVector v)
+      $ uniqueArrayOfVector v
 
     aux :: ArrayEltR e -> Vectors e -> ArrayData e
     aux ArrayEltRunit           _       = AD_Unit
@@ -108,7 +108,7 @@ toVectors (Array sh adata) = aux arrayElt adata
     n = R.size sh
 
     wrap :: Prim a => UniqueArray a -> Vector a
-    wrap ua = unsafePerformIO (vectorOfUniqueArray n ua)
+    wrap ua = vectorOfUniqueArray n ua
 
     aux :: ArrayEltR e -> ArrayData e -> Vectors e
     aux ArrayEltRunit           AD_Unit         = ()
