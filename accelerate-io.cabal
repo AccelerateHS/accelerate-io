@@ -36,21 +36,32 @@ library
         , array           >= 0.3
         , bmp             >= 1.2
         , bytestring      >= 0.9
+        , primitive       >= 0.6
         , repa            >= 3.2
         , vector          >= 0.9
 
   exposed-modules:
+        -- bmp
         Data.Array.Accelerate.IO.Codec.BMP
+
+        -- bytestring
         Data.Array.Accelerate.IO.Data.ByteString
+
+        -- vector
         Data.Array.Accelerate.IO.Data.Vector.Storable
+        Data.Array.Accelerate.IO.Data.Vector.Primitive
+
+        -- array
         Data.Array.Accelerate.IO.Data.Array.IArray
 
-        -- Repa has a name space for its different representations; reuse this
+        -- repa
         Data.Array.Repa.Repr.Accelerate
 
   other-modules:
         Data.Array.Accelerate.IO.BlockCopy
         Data.Array.Accelerate.IO.Ptr
+
+        Data.Array.Accelerate.IO.Data.Vector.Internal
 
   hs-source-dirs:
         src
