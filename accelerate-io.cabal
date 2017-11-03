@@ -1,5 +1,5 @@
 Name:                   accelerate-io
-Version:                1.0.0.1
+Version:                1.1.0.0
 Cabal-version:          >= 1.6
 Tested-with:            GHC >= 7.8
 Build-type:             Simple
@@ -65,7 +65,7 @@ Source-repository head
 
 Source-repository this
   Type:                 git
-  Tag:                  1.0.0.1
+  Tag:                  1.1.0.0
   Location:             git://github.com/AccelerateHS/accelerate-io.git
 
 -- vim: nospell
