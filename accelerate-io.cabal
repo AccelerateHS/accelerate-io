@@ -41,6 +41,7 @@ library
 
   exposed-modules:
         Data.Array.Accelerate.IO
+        Data.Array.Accelerate.IO.ByteString
         Data.Array.Accelerate.IO.IArray
         Data.Array.Accelerate.IO.Vector.Storable
 
@@ -50,7 +51,6 @@ library
   other-modules:
         Data.Array.Accelerate.IO.BlockCopy
         Data.Array.Accelerate.IO.BMP
-        Data.Array.Accelerate.IO.ByteString
         Data.Array.Accelerate.IO.Ptr
 
   hs-source-dirs:

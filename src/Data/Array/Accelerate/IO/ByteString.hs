@@ -1,49 +1,62 @@
+{-# LANGUAGE CPP             #-}
+{-# LANGUAGE MagicHash       #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns    #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.ByteString
 -- Copyright   : [2010..2011] Sean Seefried
---               [2010..2014] Trevor L. McDonell
+--               [2010..2017] Trevor L. McDonell
 -- License     : BSD3
 --
 -- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
+-- Conversion between strict 'ByteString's and Accelerate 'Array's.
+--
 
 module Data.Array.Accelerate.IO.ByteString (
 
-  -- ** Data.ByteString
-  ByteStrings, fromByteString, toByteString
+  fromByteString, toByteString
 
 ) where
 
-import Data.Array.Accelerate.IO.BlockCopy
+import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar
+import Data.Array.Accelerate.Array.Unique
+import Data.Array.Accelerate.Error
+import Data.Array.Accelerate.Lifetime
+import qualified Data.Array.Accelerate.Array.Representation         as R
+
+import Data.ByteString                                              as B
+import Data.ByteString.Internal                                     as B
+import Data.Word
+import Foreign.ForeignPtr
+import System.IO.Unsafe
+
+#if !MIN_VERSION_base(4,10,0)
+import GHC.ForeignPtr
+import GHC.Base
+#endif
 
 
--- | Block copies bytes from a collection of 'ByteString's to freshly allocated
---   Accelerate array.
+-- | /O(1)/. Convert a strict 'ByteString' into an Accelerate 'Array'.
 --
---   The type of elements (@e@) in the output Accelerate array determines the
---   structure of the collection of 'ByteString's that will be required as the
---   second argument to this function. See 'ByteStrings'
---
-fromByteString :: (Shape sh, Elt e) => sh -> ByteStrings (EltRepr e) -> IO (Array sh e)
-fromByteString sh byteStrings = do
-  arr <- allocateArray sh
-  let copier = let ((_,f),_,_) = blockCopyFunGenerator arr in f
-  copier byteStrings
-  return arr
+fromByteString :: Shape sh => sh -> ByteString -> Array sh Word8
+fromByteString sh (B.toForeignPtr -> (ps,s,l))
+  = $boundsCheck "fromByteString" "shape mismatch" (size sh == l)
+  $ Array (fromElt sh) (AD_Word8 (unsafePerformIO (newUniqueArray (plusForeignPtr ps s))))
 
 
--- | Block copy from an Accelerate array to a collection of freshly allocated
---   'ByteString's.
+-- | /O(1)/. Convert an Accelerate 'Array' into a strict 'ByteString'.
 --
---   The type of elements (@e@) in the input Accelerate array determines the
---   structure of the collection of 'ByteString's that will be output. See
---   'ByteStrings'
---
-toByteString :: (Shape sh, Elt e) => Array sh e -> IO (ByteStrings (EltRepr e))
-toByteString arr = do
-  let copier = let (_,(_,f),_) = blockCopyFunGenerator arr in f
-  copier
+toByteString :: Array sh Word8 -> ByteString
+toByteString (Array sh (AD_Word8 ua))
+  = B.fromForeignPtr (unsafeGetValue (uniqueArrayData ua)) 0 (R.size sh)
+
+
+#if !MIN_VERSION_base(4,10,0)
+plusForeignPtr :: ForeignPtr a -> Int -> ForeignPtr b
+plusForeignPtr (ForeignPtr addr# c) (I# d#) = ForeignPtr (plusAddr# addr# d#) c
+#endif
 
