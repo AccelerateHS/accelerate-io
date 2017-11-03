@@ -29,18 +29,6 @@ Extra-source-files:
     README.md
     CHANGELOG.md
 
-Flag bounds-checks
-  Description:          Enable bounds checking
-  Default:              True
-
-Flag unsafe-checks
-  Description:          Enable bounds checking in unsafe operations
-  Default:              False
-
-Flag internal-checks
-  Description:          Enable internal consistency checks
-  Default:              False
-
 Library
   Build-depends:
           base            >= 4.7 && < 4.11
@@ -68,21 +56,6 @@ Library
         -Wall
         -funbox-strict-fields
 
-  if flag(bounds-checks)
-    cpp-options:        -DACCELERATE_BOUNDS_CHECKS
-
-  if flag(unsafe-checks)
-    cpp-options:        -DACCELERATE_UNSAFE_CHECKS
-
-  if flag(internal-checks)
-    cpp-options:        -DACCELERATE_INTERNAL_CHECKS
-
-  -- Don't add the extensions list here. Instead, place individual LANGUAGE
-  -- pragmas in the files that require a specific extension. This means the
-  -- project loads in GHCi, and avoids extension clashes.
-  --
-  -- Extensions:
-
 Source-repository head
   Type:                 git
   Location:             git://github.com/AccelerateHS/accelerate-io.git
@@ -93,4 +66,3 @@ Source-repository this
   Location:             git://github.com/AccelerateHS/accelerate-io.git
 
 -- vim: nospell
-
