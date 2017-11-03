@@ -54,6 +54,7 @@ library
 
         -- array
         Data.Array.Accelerate.IO.Data.Array.IArray
+        Data.Array.Accelerate.IO.Data.Array.Unboxed
 
         -- repa
         Data.Array.Repa.Repr.Accelerate
@@ -62,6 +63,7 @@ library
         Data.Array.Accelerate.IO.BlockCopy
         Data.Array.Accelerate.IO.Ptr
 
+        Data.Array.Accelerate.IO.Data.Array.Internal
         Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
 
   hs-source-dirs:

@@ -1,8 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- |
--- Module      : Data.Array.Accelerate.IO.IArray
--- Copyright   : [2016] Trevor L. McDonell
+-- Module      : Data.Array.Accelerate.IO.Data.Array.IArray
+-- Copyright   : [2016..2017] Trevor L. McDonell
 -- License     : BSD3
 --
 -- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
@@ -21,6 +21,8 @@ module Data.Array.Accelerate.IO.Data.Array.IArray (
 
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Type
+
+import Data.Array.Accelerate.IO.Data.Array.Internal
 
 import Data.Array.IArray                                        ( IArray )
 import qualified Data.Array.IArray                              as IArray
@@ -76,28 +78,4 @@ toIArray arr = IArray.array bnds [(ix, arr ! toIxShapeRepr ix) | ix <- IArray.ra
   where
     (lo,hi) = shapeToRange (shape arr)
     bnds    = (fromIxShapeRepr lo, fromIxShapeRepr hi)
-
-
-type family IxShapeRepr e where
-  IxShapeRepr ()    = ()
-  IxShapeRepr Int   = ((),Int)
-  IxShapeRepr (t,h) = (IxShapeRepr t, h)
-
-fromIxShapeRepr :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix) => sh -> ix
-fromIxShapeRepr sh = toElt (go (eltType (undefined::ix)) (fromElt sh))
-  where
-    go :: forall ix'. TupleType ix' -> IxShapeRepr ix' -> ix'
-    go UnitTuple ()                                                         = ()
-    go (SingleTuple     (NumScalarType (IntegralNumType TypeInt{}))) ((),h) = h
-    go (PairTuple tt _) (t, h)                                              = (go tt t, h)
-    go _ _ = error "Data.Array.Accelerate.IO.IArray: not a valid IArray.Ix"
-
-toIxShapeRepr :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix) => ix -> sh
-toIxShapeRepr ix = toElt (go (eltType (undefined::ix)) (fromElt ix))
-  where
-    go :: forall ix'. TupleType ix' -> ix' -> IxShapeRepr ix'
-    go UnitTuple        ()                                             = ()
-    go (SingleTuple     (NumScalarType (IntegralNumType TypeInt{}))) h = ((), h)
-    go (PairTuple tt _) (t, h)                                         = (go tt t, h)
-    go _ _ = error "Data.Array.Accelerate.IO.IArray: not a valid IArray.Ix"
 
