@@ -3,7 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns    #-}
 -- |
--- Module      : Data.Array.Accelerate.IO.ByteString
+-- Module      : Data.Array.Accelerate.IO.Data.ByteString
 -- Copyright   : [2010..2011] Sean Seefried
 --               [2010..2017] Trevor L. McDonell
 -- License     : BSD3
@@ -15,7 +15,7 @@
 -- Conversion between strict 'ByteString's and Accelerate 'Array's.
 --
 
-module Data.Array.Accelerate.IO.ByteString (
+module Data.Array.Accelerate.IO.Data.ByteString (
 
   fromByteString, toByteString
 

@@ -41,9 +41,9 @@ library
 
   exposed-modules:
         Data.Array.Accelerate.IO
-        Data.Array.Accelerate.IO.ByteString
-        Data.Array.Accelerate.IO.IArray
-        Data.Array.Accelerate.IO.Vector.Storable
+        Data.Array.Accelerate.IO.Data.ByteString
+        Data.Array.Accelerate.IO.Data.Vector.Storable
+        Data.Array.Accelerate.IO.Data.Array.IArray
 
         -- Repa has a name space for its different representations; reuse this
         Data.Array.Repa.Repr.Accelerate

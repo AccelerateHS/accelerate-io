@@ -1,7 +1,8 @@
-{-# LANGUAGE GADTs        #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE GADTs           #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies    #-}
 -- |
--- Module      : Data.Array.Accelerate.IO.Vector.Storable
+-- Module      : Data.Array.Accelerate.IO.Data.Vector.Storable
 -- Copyright   : [2012] Adam C. Foltzer
 --               [2012..2017] Trevor L. McDonell
 -- License     : BSD3
@@ -14,7 +15,7 @@
 -- Accelerate 'Array's.
 --
 
-module Data.Array.Accelerate.IO.Vector.Storable (
+module Data.Array.Accelerate.IO.Data.Vector.Storable (
 
   Vectors,
   toVectors,
@@ -33,6 +34,7 @@ import System.IO.Unsafe
 import Data.Array.Accelerate.Lifetime
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Array.Data
+import Data.Array.Accelerate.Array.Error
 import Data.Array.Accelerate.Array.Sugar                        hiding ( Vector, size )
 import Data.Array.Accelerate.Array.Representation               ( size )
 
@@ -89,8 +91,11 @@ type instance Vectors (a,b)   = (Vectors a, Vectors b)
 fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
 fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
   where
-    wrap k v = let (fp,_) = unsafeToForeignPtr0 v
-               in  k (unsafePerformIO $ newUniqueArray fp)
+    wrap k v
+      = $boundsCheck "fromVectors" "shape mismatch" (vsize == size sh)
+      $ k (unsafePerformIO $ newUniqueArray fp)
+      where
+        (fp,vsize) = unsafeToForeignPtr0 v
 
     aux :: ArrayEltR e -> Vectors e -> ArrayData e
     aux ArrayEltRunit           = const AD_Unit

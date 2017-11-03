@@ -9,12 +9,10 @@
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
--- Convert immutable 'IArray's of the
--- <https://hackage.haskell.org/package/array array>
--- library into Accelerate 'Array's.
+-- Convert between immutable 'IArray's and Accelerate 'Array's.
 --
 
-module Data.Array.Accelerate.IO.IArray (
+module Data.Array.Accelerate.IO.Data.Array.IArray (
 
   fromIArray,
   toIArray,
