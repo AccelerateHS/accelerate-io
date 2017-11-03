@@ -31,12 +31,12 @@ import Data.Vector.Storable
 import System.IO.Unsafe
 
 -- friends
-import Data.Array.Accelerate.Lifetime
-import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Array.Data
-import Data.Array.Accelerate.Array.Error
-import Data.Array.Accelerate.Array.Sugar                        hiding ( Vector, size )
-import Data.Array.Accelerate.Array.Representation               ( size )
+import Data.Array.Accelerate.Array.Sugar                            hiding ( Vector )
+import Data.Array.Accelerate.Array.Unique
+import Data.Array.Accelerate.Error
+import Data.Array.Accelerate.Lifetime
+import qualified Data.Array.Accelerate.Array.Representation         as R
 
 
 -- | A family of types that represents a collection of storable 'Vector's. The
@@ -91,6 +91,7 @@ type instance Vectors (a,b)   = (Vectors a, Vectors b)
 fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
 fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
   where
+    wrap :: Storable e => (UniqueArray e -> a) -> Vector e -> a
     wrap k v
       = $boundsCheck "fromVectors" "shape mismatch" (vsize == size sh)
       $ k (unsafePerformIO $ newUniqueArray fp)
@@ -139,7 +140,7 @@ toVectors :: (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
 toVectors (Array sh adata) = aux arrayElt adata
   where
     wrap :: Storable a => UniqueArray a -> Vector a
-    wrap ua = unsafeFromForeignPtr0 (unsafeGetValue (uniqueArrayData ua)) (size sh)
+    wrap ua = unsafeFromForeignPtr0 (unsafeGetValue (uniqueArrayData ua)) (R.size sh)
 
     aux :: ArrayEltR e -> ArrayData e -> Vectors e
     aux ArrayEltRunit           AD_Unit         = ()
