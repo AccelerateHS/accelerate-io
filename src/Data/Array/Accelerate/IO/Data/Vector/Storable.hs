@@ -44,7 +44,7 @@ import qualified Data.Array.Accelerate.Array.Representation         as R
 --
 -- For example:
 --
---   * if @e :: Int@,             then @Vectors (EltRepr e) :: ((), Vector Int)@
+--   * if @e :: Int@,             then @Vectors (EltRepr e) :: Vector Int@
 --
 --   * if @e :: (Double, Float)@, then @Vectors (EltRepr e) :: (((), Vector Double), Vector Float)@
 --
