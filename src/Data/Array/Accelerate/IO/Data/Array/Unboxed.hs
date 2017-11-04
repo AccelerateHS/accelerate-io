@@ -33,7 +33,6 @@ import Data.Primitive                                               ( Prim, size
 import Data.Primitive.ByteArray
 
 import Data.Array.Base
-import Data.Array.IArray                                            ( IArray )
 import Data.Array.Unboxed                                           as U hiding ( Array )
 import System.IO.Unsafe
 
