@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -232,7 +233,11 @@ instance (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f) => Unbox (a, b, 
           (unboxedOfArrayData n e)
           (unboxedOfArrayData n f)
 
+#if MIN_VERSION_vector(0,12,0)
 instance Unbox a => Unbox (Complex a) where
+#else
+instance (RealFloat a, Unbox a) => Unbox (Complex a) where
+#endif
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Complex v2) = arrayDataOfUnboxed v2
