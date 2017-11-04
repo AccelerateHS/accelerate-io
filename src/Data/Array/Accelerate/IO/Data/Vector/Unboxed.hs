@@ -53,7 +53,7 @@ fromUnboxed v = Array ((), U.length v) (arrayDataOfUnboxed v)
 -- | /O(1)/ (typically). Convert an Accelerate array into an Unboxed vector.
 --
 -- If the array data was allocated by Accelerate, this can typically be done
--- without copying.
+-- without copying. The resulting vector will be pinned.
 --
 -- @since 1.1.0.0@
 --
