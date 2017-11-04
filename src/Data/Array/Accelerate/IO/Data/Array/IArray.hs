@@ -30,15 +30,15 @@ import qualified Data.Array.IArray                              as IArray
 
 -- | /O(n)/. Convert an 'IArray' to an Accelerate 'Array'.
 --
--- While the type signature mentions Accelerate internals, in practice
--- satisfying the type equality is straight forward. The index type @ix@ must be
--- the unit type @()@ for singleton arrays, or an @Int@ or tuple of @Int@'s for
--- multidimensional arrays. For example:
+-- The index type @ix@ of the 'IArray' corresponds to the shape @sh@ of the
+-- Accelerate 'Array' in the following way:
 --
 -- > DIM0 ~ ()
 -- > DIM1 ~ Int
 -- > DIM2 ~ (Int,Int)
 -- > DIM3 ~ (Int,Int,Int)
+--
+-- ...and so forth.
 --
 fromIArray
     :: (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray a e, IArray.Ix ix, Shape sh, Elt ix, Elt e)
