@@ -63,6 +63,8 @@ type instance Vectors (a,b)  = (Vectors a, Vectors b)
 --
 -- If the underlying vectors are pinned then this can be done without.
 --
+-- See also: <https://ghc.haskell.org/trac/ghc/ticket/5556>
+--
 -- @since 1.1.0.0@
 --
 fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e

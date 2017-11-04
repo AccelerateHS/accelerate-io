@@ -41,6 +41,8 @@ import Data.Word
 --
 -- If the underlying vectors are pinned then this can be done without copying.
 --
+-- See also: <https://ghc.haskell.org/trac/ghc/ticket/5556>
+--
 -- @since 1.1.0.0@
 --
 fromUnboxed :: Unbox e => Vector e -> Array DIM1 e
