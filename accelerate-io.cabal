@@ -56,6 +56,9 @@ library
         Data.Array.Accelerate.IO.Data.Array.IArray
         Data.Array.Accelerate.IO.Data.Array.Unboxed
 
+        -- foeign
+        Data.Array.Accelerate.IO.Foreign.ForeignPtr
+
         -- repa
         Data.Array.Repa.Repr.Accelerate
 
