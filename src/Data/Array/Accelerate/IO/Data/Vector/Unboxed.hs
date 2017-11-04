@@ -1,6 +1,5 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Data.Vector.Unboxed
@@ -31,7 +30,6 @@ import Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar                            as A hiding ( Vector )
 import Data.Array.Accelerate.Data.Complex
-import Data.Array.Accelerate.Error
 import qualified Data.Array.Accelerate.Array.Representation         as R
 
 import Data.Int
@@ -45,10 +43,8 @@ import Data.Word
 --
 -- @since 1.1.0.0@
 --
-fromUnboxed :: (Shape sh, Unbox e) => sh -> Vector e -> Array sh e
-fromUnboxed sh v
-  = $boundsCheck "fromUnboxed" "shape mismatch" (size sh == U.length v)
-  $ Array (fromElt sh) (fromUnboxed' v)
+fromUnboxed :: Unbox e => Vector e -> Array DIM1 e
+fromUnboxed v = Array ((), U.length v) (fromUnboxed' v)
 
 
 -- | /O(1)/ (typically). Convert an Accelerate array into an Unboxed vector.
@@ -59,8 +55,7 @@ fromUnboxed sh v
 -- @since 1.1.0.0@
 --
 toUnboxed :: (Shape sh, Unbox e) => Array sh e -> Vector e
-toUnboxed (Array sh adata)
-  = toUnboxed' (R.size sh) adata
+toUnboxed (Array sh adata) = toUnboxed' (R.size sh) adata
 
 
 -- Instances

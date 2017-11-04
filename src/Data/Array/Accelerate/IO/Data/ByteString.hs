@@ -1,7 +1,6 @@
-{-# LANGUAGE CPP             #-}
-{-# LANGUAGE MagicHash       #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ViewPatterns    #-}
+{-# LANGUAGE CPP          #-}
+{-# LANGUAGE MagicHash    #-}
+{-# LANGUAGE ViewPatterns #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Data.ByteString
 -- Copyright   : [2010..2011] Sean Seefried
@@ -24,7 +23,6 @@ module Data.Array.Accelerate.IO.Data.ByteString (
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Array.Unique
-import Data.Array.Accelerate.Error
 import Data.Array.Accelerate.Lifetime
 import qualified Data.Array.Accelerate.Array.Representation         as R
 
@@ -42,10 +40,9 @@ import GHC.Base
 
 -- | /O(1)/. Convert a strict 'ByteString' into an Accelerate 'Array'.
 --
-fromByteString :: Shape sh => sh -> ByteString -> Array sh Word8
-fromByteString sh (B.toForeignPtr -> (ps,s,l))
-  = $boundsCheck "fromByteString" "shape mismatch" (size sh == l)
-  $ Array (fromElt sh) (AD_Word8 (unsafePerformIO (newUniqueArray (plusForeignPtr ps s))))
+fromByteString :: ByteString -> Array DIM1 Word8
+fromByteString (B.toForeignPtr -> (ps,s,l)) =
+  Array ((), l) (AD_Word8 (unsafePerformIO (newUniqueArray (plusForeignPtr ps s))))
 
 
 -- | /O(1)/. Convert an Accelerate 'Array' into a strict 'ByteString'.

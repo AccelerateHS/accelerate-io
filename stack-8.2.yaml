@@ -6,6 +6,11 @@ resolver: nightly-2017-11-01
 packages:
 - '.'
 
+- location:
+    git:    https://github.com/tmcdonell/accelerate.git
+    commit: 216538e42140a70fb8f5e4d3c0f045c33e5babfe
+  extra-dep: true
+
 extra-deps: []
 
 # Override default flag values for local packages and extra-deps

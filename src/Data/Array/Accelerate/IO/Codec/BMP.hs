@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP             #-}
+{-# LANGUAGE TemplateHaskell #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Codec.BMP
 -- Copyright   : [2012..2014] Trevor L. McDonell
@@ -28,6 +30,11 @@ import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Lifetime
 
+#if !MIN_VERSION_accelerate(1,2,0)
+import Data.Array.Accelerate.Error
+import qualified Data.Array.Accelerate.Array.Representation         as R
+#endif
+
 import Data.Array.Accelerate.IO.Data.ByteString
 
 
@@ -48,7 +55,7 @@ readImageFromBMP file = do
     Right bmp   -> do
       let (w,h) = bmpDimensions bmp
           bs    = unpackBMPToRGBA32 bmp
-          arr   = fromByteString (Z :. h :. w * 4) bs
+          arr   = reshape (Z :. h :. w*4) $ fromByteString bs
       --
       return $ Right (w32 arr)
 
@@ -70,4 +77,11 @@ w32 (Array (((),h),w) (AD_Word8 ua)) = Array (((),h),w`quot`4) (AD_Word32 (castU
 
 castUniqueArray :: UniqueArray a -> UniqueArray b
 castUniqueArray (UniqueArray uid (Lifetime ref w p)) = UniqueArray uid (Lifetime ref w (castForeignPtr p))
+
+#if !MIN_VERSION_accelerate(1,2,0)
+reshape :: (Shape sh, Shape sh', Elt e) => sh -> Array sh' e -> Array sh e
+reshape sh (Array sh' adata)
+  = $boundsCheck "reshape" "shape mismatch" (size sh == R.size sh')
+  $ Array (fromElt sh) adata
+#endif
 
