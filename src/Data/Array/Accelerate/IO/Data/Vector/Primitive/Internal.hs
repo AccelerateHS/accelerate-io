@@ -42,7 +42,7 @@ uniqueArrayOfVector (Vector o l ba)
 vectorOfUniqueArray :: forall a. Prim a => Int -> UniqueArray a -> Vector a
 vectorOfUniqueArray n ua
   = unsafePerformIO
-  $ Vector 0 n <$> byteArrayOfForeignPtr (n * sizeOf (undefined::a)) (unsafeGetValue (uniqueArrayData ua))
+  $ Vector 0 n `fmap` byteArrayOfForeignPtr (n * sizeOf (undefined::a)) (unsafeGetValue (uniqueArrayData ua))
 
 
 -- Return the ByteArray underlying a ForeignPtr, or a new byte array if it is
