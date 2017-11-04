@@ -25,7 +25,7 @@ import Data.Array.Accelerate.Lifetime
 
 import GHC.Base
 import GHC.ForeignPtr
-import GHC.IO.Unsafe
+import System.IO.Unsafe
 
 
 -- Convert a primitive vector into a unique array
