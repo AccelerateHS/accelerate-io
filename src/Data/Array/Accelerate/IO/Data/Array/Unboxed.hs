@@ -72,6 +72,7 @@ fromUArray (UArray lo hi n ba#) = Array (fromElt sh) (aux (arrayElt :: ArrayEltR
     aux ArrayEltRfloat  = wrap AD_Float
     aux ArrayEltRdouble = wrap AD_Double
     aux ArrayEltRchar   = wrap AD_Char
+    aux ArrayEltRbool   = $internalError "fromUArray" "TODO: Bool"  -- need to unpack bit array
     aux _               = $internalError "fromUArray" "unsupported type"
 
 
@@ -114,5 +115,7 @@ toUArray arr@(Array sh adata) =
     aux ArrayEltRword64 (AD_Word64 v) = wrap v
     aux ArrayEltRfloat  (AD_Float v)  = wrap v
     aux ArrayEltRdouble (AD_Double v) = wrap v
+    aux ArrayEltRchar   (AD_Char v)   = wrap v
+    aux ArrayEltRbool   (AD_Bool _)   = $internalError "toUArray" "TODO: Bool"  -- need to pack bit array
     aux _ _ = $internalError "toUArray" "unsupported type"
 
