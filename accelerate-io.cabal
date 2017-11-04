@@ -60,9 +60,6 @@ library
         Data.Array.Repa.Repr.Accelerate
 
   other-modules:
-        Data.Array.Accelerate.IO.BlockCopy
-        Data.Array.Accelerate.IO.Ptr
-
         Data.Array.Accelerate.IO.Data.Array.Internal
         Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
 
