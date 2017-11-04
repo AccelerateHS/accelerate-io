@@ -46,7 +46,7 @@ import Data.Word
 -- @since 1.1.0.0@
 --
 fromUnboxed :: Unbox e => Vector e -> Array DIM1 e
-fromUnboxed v = Array ((), U.length v) (fromUnboxed' v)
+fromUnboxed v = Array ((), U.length v) (arrayDataOfUnboxed v)
 
 
 -- | /O(1)/ (typically). Convert an Accelerate array into an Unboxed vector.
@@ -57,144 +57,186 @@ fromUnboxed v = Array ((), U.length v) (fromUnboxed' v)
 -- @since 1.1.0.0@
 --
 toUnboxed :: (Shape sh, Unbox e) => Array sh e -> Vector e
-toUnboxed (Array sh adata) = toUnboxed' (R.size sh) adata
+toUnboxed (Array sh adata) = unboxedOfArrayData (R.size sh) adata
 
 
 -- Instances
 -- ---------
 
 class (U.Unbox e, A.Elt e) => Unbox e where
-  fromUnboxed' :: U.Vector e -> ArrayData (EltRepr e)
-  toUnboxed'   :: Int -> ArrayData (EltRepr e) -> U.Vector e
+  arrayDataOfUnboxed :: U.Vector e -> ArrayData (EltRepr e)
+  unboxedOfArrayData :: Int -> ArrayData (EltRepr e) -> U.Vector e
 
 instance Unbox Int    where
-  fromUnboxed' (V_Int v)  = AD_Int (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Int v) = V_Int (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Int v) = AD_Int (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Int v) = V_Int (vectorOfUniqueArray n v)
 
 instance Unbox Int8   where
-  fromUnboxed' (V_Int8 v)  = AD_Int8 (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Int8 v) = V_Int8 (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Int8 v) = AD_Int8 (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Int8 v) = V_Int8 (vectorOfUniqueArray n v)
 
 instance Unbox Int16  where
-  fromUnboxed' (V_Int16 v)  = AD_Int16 (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Int16 v) = V_Int16 (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Int16 v) = AD_Int16 (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Int16 v) = V_Int16 (vectorOfUniqueArray n v)
 
 instance Unbox Int32  where
-  fromUnboxed' (V_Int32 v)  = AD_Int32 (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Int32 v) = V_Int32 (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Int32 v) = AD_Int32 (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Int32 v) = V_Int32 (vectorOfUniqueArray n v)
 
 instance Unbox Int64  where
-  fromUnboxed' (V_Int64 v)  = AD_Int64 (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Int64 v) = V_Int64 (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Int64 v)  = AD_Int64 (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Int64 v) = V_Int64 (vectorOfUniqueArray n v)
 
 instance Unbox Word   where
-  fromUnboxed' (V_Word v)  = AD_Word (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Word v) = V_Word (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Word v) = AD_Word (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Word v) = V_Word (vectorOfUniqueArray n v)
 
 instance Unbox Word8  where
-  fromUnboxed' (V_Word8 v)  = AD_Word8 (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Word8 v) = V_Word8 (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Word8 v) = AD_Word8 (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Word8 v) = V_Word8 (vectorOfUniqueArray n v)
 
 instance Unbox Word16 where
-  fromUnboxed' (V_Word16 v)  = AD_Word16 (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Word16 v) = V_Word16 (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Word16 v) = AD_Word16 (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Word16 v) = V_Word16 (vectorOfUniqueArray n v)
 
 instance Unbox Word32 where
-  fromUnboxed' (V_Word32 v)  = AD_Word32 (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Word32 v) = V_Word32 (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Word32 v) = AD_Word32 (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Word32 v) = V_Word32 (vectorOfUniqueArray n v)
 
 instance Unbox Word64 where
-  fromUnboxed' (V_Word64 v)  = AD_Word64 (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Word64 v) = V_Word64 (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Word64 v) = AD_Word64 (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Word64 v) = V_Word64 (vectorOfUniqueArray n v)
 
 instance Unbox Float  where
-  fromUnboxed' (V_Float v)  = AD_Float (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Float v) = V_Float (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Float v) = AD_Float (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Float v) = V_Float (vectorOfUniqueArray n v)
 
 instance Unbox Double where
-  fromUnboxed' (V_Double v)  = AD_Double (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Double v) = V_Double (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Double v) = AD_Double (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Double v) = V_Double (vectorOfUniqueArray n v)
 
 instance Unbox Char   where
-  fromUnboxed' (V_Char v)  = AD_Char (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Char v) = V_Char (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Char v) = AD_Char (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Char v) = V_Char (vectorOfUniqueArray n v)
 
 instance Unbox Bool   where
-  fromUnboxed' (V_Bool v)  = AD_Bool (uniqueArrayOfVector v)
-  toUnboxed' n (AD_Bool v) = V_Bool (vectorOfUniqueArray n v)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Bool v) = AD_Bool (uniqueArrayOfVector v)
+  unboxedOfArrayData n (AD_Bool v) = V_Bool (vectorOfUniqueArray n v)
 
 instance Unbox ()  where
-  fromUnboxed' V_Unit{} = AD_Unit
-  toUnboxed' n AD_Unit  = V_Unit n
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed V_Unit{} = AD_Unit
+  unboxedOfArrayData n AD_Unit = V_Unit n
 
 instance (Unbox a, Unbox b) => Unbox (a, b) where
-  fromUnboxed' (V_2 _ a b) =
-    AD_Unit `AD_Pair` fromUnboxed' a
-            `AD_Pair` fromUnboxed' b
+  {-# INLINE arrayDataOfUnboxed #-}
+  arrayDataOfUnboxed (V_2 _ a b) =
+    AD_Unit `AD_Pair` arrayDataOfUnboxed a
+            `AD_Pair` arrayDataOfUnboxed b
   --
-  toUnboxed' n (AD_Unit `AD_Pair` a `AD_Pair` b) =
-    V_2 n (toUnboxed' n a)
-          (toUnboxed' n b)
+  {-# INLINE unboxedOfArrayData #-}
+  unboxedOfArrayData n (AD_Unit `AD_Pair` a `AD_Pair` b) =
+    V_2 n (unboxedOfArrayData n a)
+          (unboxedOfArrayData n b)
 
 instance (Unbox a, Unbox b, Unbox c) => Unbox (a, b, c) where
-  fromUnboxed' (V_3 _ a b c) =
-    AD_Unit `AD_Pair` fromUnboxed' a
-            `AD_Pair` fromUnboxed' b
-            `AD_Pair` fromUnboxed' c
+  {-# INLINE arrayDataOfUnboxed #-}
+  arrayDataOfUnboxed (V_3 _ a b c) =
+    AD_Unit `AD_Pair` arrayDataOfUnboxed a
+            `AD_Pair` arrayDataOfUnboxed b
+            `AD_Pair` arrayDataOfUnboxed c
   --
-  toUnboxed' n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c) =
-    V_3 n (toUnboxed' n a)
-          (toUnboxed' n b)
-          (toUnboxed' n c)
+  {-# INLINE unboxedOfArrayData #-}
+  unboxedOfArrayData n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c) =
+    V_3 n (unboxedOfArrayData n a)
+          (unboxedOfArrayData n b)
+          (unboxedOfArrayData n c)
 
 instance (Unbox a, Unbox b, Unbox c, Unbox d) => Unbox (a, b, c, d) where
-  fromUnboxed' (V_4 _ a b c d) =
-    AD_Unit `AD_Pair` fromUnboxed' a
-            `AD_Pair` fromUnboxed' b
-            `AD_Pair` fromUnboxed' c
-            `AD_Pair` fromUnboxed' d
+  {-# INLINE arrayDataOfUnboxed #-}
+  arrayDataOfUnboxed (V_4 _ a b c d) =
+    AD_Unit `AD_Pair` arrayDataOfUnboxed a
+            `AD_Pair` arrayDataOfUnboxed b
+            `AD_Pair` arrayDataOfUnboxed c
+            `AD_Pair` arrayDataOfUnboxed d
   --
-  toUnboxed' n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c `AD_Pair` d) =
-    V_4 n (toUnboxed' n a)
-          (toUnboxed' n b)
-          (toUnboxed' n c)
-          (toUnboxed' n d)
+  {-# INLINE unboxedOfArrayData #-}
+  unboxedOfArrayData n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c `AD_Pair` d) =
+    V_4 n (unboxedOfArrayData n a)
+          (unboxedOfArrayData n b)
+          (unboxedOfArrayData n c)
+          (unboxedOfArrayData n d)
 
 instance (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e) => Unbox (a, b, c, d, e) where
-  fromUnboxed' (V_5 _ a b c d e) =
-    AD_Unit `AD_Pair` fromUnboxed' a
-            `AD_Pair` fromUnboxed' b
-            `AD_Pair` fromUnboxed' c
-            `AD_Pair` fromUnboxed' d
-            `AD_Pair` fromUnboxed' e
+  {-# INLINE arrayDataOfUnboxed #-}
+  arrayDataOfUnboxed (V_5 _ a b c d e) =
+    AD_Unit `AD_Pair` arrayDataOfUnboxed a
+            `AD_Pair` arrayDataOfUnboxed b
+            `AD_Pair` arrayDataOfUnboxed c
+            `AD_Pair` arrayDataOfUnboxed d
+            `AD_Pair` arrayDataOfUnboxed e
   --
-  toUnboxed' n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c `AD_Pair` d `AD_Pair` e) =
-    V_5 n (toUnboxed' n a)
-          (toUnboxed' n b)
-          (toUnboxed' n c)
-          (toUnboxed' n d)
-          (toUnboxed' n e)
+  {-# INLINE unboxedOfArrayData #-}
+  unboxedOfArrayData n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c `AD_Pair` d `AD_Pair` e) =
+    V_5 n (unboxedOfArrayData n a)
+          (unboxedOfArrayData n b)
+          (unboxedOfArrayData n c)
+          (unboxedOfArrayData n d)
+          (unboxedOfArrayData n e)
 
 instance (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f) => Unbox (a, b, c, d, e, f) where
-  fromUnboxed' (V_6 _ a b c d e f) =
-    AD_Unit `AD_Pair` fromUnboxed' a
-            `AD_Pair` fromUnboxed' b
-            `AD_Pair` fromUnboxed' c
-            `AD_Pair` fromUnboxed' d
-            `AD_Pair` fromUnboxed' e
-            `AD_Pair` fromUnboxed' f
+  {-# INLINE arrayDataOfUnboxed #-}
+  arrayDataOfUnboxed (V_6 _ a b c d e f) =
+    AD_Unit `AD_Pair` arrayDataOfUnboxed a
+            `AD_Pair` arrayDataOfUnboxed b
+            `AD_Pair` arrayDataOfUnboxed c
+            `AD_Pair` arrayDataOfUnboxed d
+            `AD_Pair` arrayDataOfUnboxed e
+            `AD_Pair` arrayDataOfUnboxed f
   --
-  toUnboxed' n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c `AD_Pair` d `AD_Pair` e `AD_Pair` f) =
-    V_6 n (toUnboxed' n a)
-          (toUnboxed' n b)
-          (toUnboxed' n c)
-          (toUnboxed' n d)
-          (toUnboxed' n e)
-          (toUnboxed' n f)
+  {-# INLINE unboxedOfArrayData #-}
+  unboxedOfArrayData n (AD_Unit `AD_Pair` a `AD_Pair` b `AD_Pair` c `AD_Pair` d `AD_Pair` e `AD_Pair` f) =
+    V_6 n (unboxedOfArrayData n a)
+          (unboxedOfArrayData n b)
+          (unboxedOfArrayData n c)
+          (unboxedOfArrayData n d)
+          (unboxedOfArrayData n e)
+          (unboxedOfArrayData n f)
 
 instance Unbox a => Unbox (Complex a) where
-  fromUnboxed' (V_Complex v2) = fromUnboxed' v2
-  toUnboxed' n v2 = V_Complex (toUnboxed' n v2)
+  {-# INLINE arrayDataOfUnboxed #-}
+  {-# INLINE unboxedOfArrayData #-}
+  arrayDataOfUnboxed (V_Complex v2) = arrayDataOfUnboxed v2
+  unboxedOfArrayData n v2 = V_Complex (unboxedOfArrayData n v2)
 
 
 {--
