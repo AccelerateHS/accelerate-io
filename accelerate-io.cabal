@@ -86,6 +86,7 @@ test-suite test-io
         base                    >= 4.7  && < 4.11
       , accelerate              >= 1.2
       , accelerate-io
+      , array
       , hedgehog                >= 0.5
       , tasty                   >= 0.11
       , tasty-hedgehog          >= 0.1
@@ -97,9 +98,11 @@ test-suite test-io
         -rtsopts
 
   other-modules:
-      Test.Util
-      Test.Vector.Unboxed
+      Test.Array.IArray
+      Test.Array.Unboxed
       Test.Vector.Storable
+      Test.Vector.Unboxed
+      Test.Util
 
 
 source-repository head
