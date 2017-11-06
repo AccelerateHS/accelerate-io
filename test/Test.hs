@@ -11,12 +11,15 @@
 module Test where
 
 import Test.Tasty
+
 import Test.Vector.Unboxed
+import Test.Vector.Storable
 
 main :: IO ()
 main
   = defaultMain
   $ testGroup "IO"
     [ test_vector_unboxed
+    , test_vector_storable
     ]
 
