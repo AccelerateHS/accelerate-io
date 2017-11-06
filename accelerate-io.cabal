@@ -96,6 +96,7 @@ test-suite test-io
         -Wall
         -threaded
         -rtsopts
+        -with-rtsopts=-N
 
   other-modules:
       Test.Array.IArray
