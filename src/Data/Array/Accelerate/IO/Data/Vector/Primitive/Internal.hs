@@ -48,6 +48,7 @@ vectorOfUniqueArray n ua
 -- Return the ByteArray underlying a ForeignPtr, or a new byte array if it is
 -- not a Plain ForeignPtr.
 --
+{-# INLINE byteArrayOfForeignPtr #-}
 byteArrayOfForeignPtr :: Int -> ForeignPtr a -> IO ByteArray
 byteArrayOfForeignPtr (I# bytes#) (ForeignPtr addr# c) = IO $ \s ->
   case c of
@@ -63,6 +64,7 @@ byteArrayOfForeignPtr (I# bytes#) (ForeignPtr addr# c) = IO $ \s ->
 -- Return the ByteArray as a ForeignPtr. This will attempt a non-copying
 -- conversion, if the underlying byte array is pinned.
 --
+{-# INLINE foreignPtrOfByteArray #-}
 foreignPtrOfByteArray :: Int -> Int -> ByteArray -> IO (ForeignPtr a)
 foreignPtrOfByteArray (I# soff#) (I# bytes#) (ByteArray ba#) = IO $ \s ->
   case isByteArrayPinned# ba# of

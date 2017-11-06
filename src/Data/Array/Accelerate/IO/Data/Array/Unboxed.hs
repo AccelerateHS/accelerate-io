@@ -54,6 +54,7 @@ import System.IO.Unsafe
 --
 -- @since 1.1.0.0@
 --
+{-# INLINE fromUArray #-}
 fromUArray
     :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray UArray e, Ix ix, Shape sh, Elt ix, Elt e)
     => UArray ix e
@@ -93,6 +94,7 @@ fromUArray (UArray lo hi n ba#) = Array (fromElt sh) (aux (arrayElt :: ArrayEltR
 --
 -- @since 1.1.0.0@
 --
+{-# INLINE toUArray #-}
 toUArray
     :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray UArray e, Ix ix, Shape sh, Elt ix)
     => ix           -- ^ index lower bound

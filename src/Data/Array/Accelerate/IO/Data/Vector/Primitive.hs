@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
 -- |
@@ -67,14 +68,17 @@ type instance Vectors (a,b)  = (Vectors a, Vectors b)
 --
 -- @since 1.1.0.0@
 --
+{-# INLINE fromVectors #-}
 fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
 fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
   where
+    {-# INLINE wrap #-}
     wrap :: Prim a => Vector a -> UniqueArray a
     wrap v@(Vector _ l _)
       = $boundsCheck "fromVectors" "shape mismatch" (size sh == l)
       $ uniqueArrayOfVector v
 
+    {-# INLINE aux #-}
     aux :: ArrayEltR e -> Vectors e -> ArrayData e
     aux ArrayEltRunit           _       = AD_Unit
     aux ArrayEltRint            v       = AD_Int    (wrap v)
@@ -103,15 +107,18 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
 --
 -- @since 1.1.0.0@
 --
+{-# INLINE toVectors #-}
 toVectors :: (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
 toVectors (Array sh adata) = aux arrayElt adata
   where
     n :: Int
-    n = R.size sh
+    !n = R.size sh
 
+    {-# INLINE wrap #-}
     wrap :: Prim a => UniqueArray a -> Vector a
     wrap ua = vectorOfUniqueArray n ua
 
+    {-# INLINE aux #-}
     aux :: ArrayEltR e -> ArrayData e -> Vectors e
     aux ArrayEltRunit           AD_Unit         = ()
     aux ArrayEltRint            (AD_Int v)      = wrap v

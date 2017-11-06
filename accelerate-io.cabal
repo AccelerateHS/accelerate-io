@@ -74,6 +74,9 @@ library
         -Wall
         -funbox-strict-fields
 
+  ghc-prof-options:
+        -fprof-auto
+
 
 test-suite test-io
   type:                 exitcode-stdio-1.0

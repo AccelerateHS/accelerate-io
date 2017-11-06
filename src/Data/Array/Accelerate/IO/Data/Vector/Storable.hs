@@ -88,9 +88,11 @@ type instance Vectors (a,b)   = (Vectors a, Vectors b)
 -- Data will be consumed from the vector in row-major order. You must make sure
 -- that each of the input vectors contains the right number of elements
 --
+{-# INLINE fromVectors #-}
 fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
 fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
   where
+    {-# INLINE wrap #-}
     wrap :: Storable e => (UniqueArray e -> a) -> Vector e -> a
     wrap k v
       = $boundsCheck "fromVectors" "shape mismatch" (vsize == size sh)
@@ -98,6 +100,7 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
       where
         (fp,vsize) = unsafeToForeignPtr0 v
 
+    {-# INLINE aux #-}
     aux :: ArrayEltR e -> Vectors e -> ArrayData e
     aux ArrayEltRunit           = const AD_Unit
     aux ArrayEltRint            = wrap AD_Int
@@ -136,12 +139,15 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
 --
 -- Data will be output in row-major order.
 --
+{-# INLINE toVectors #-}
 toVectors :: (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
 toVectors (Array sh adata) = aux arrayElt adata
   where
+    {-# INLINE wrap #-}
     wrap :: Storable a => UniqueArray a -> Vector a
     wrap ua = unsafeFromForeignPtr0 (unsafeGetValue (uniqueArrayData ua)) (R.size sh)
 
+    {-# INLINE aux #-}
     aux :: ArrayEltR e -> ArrayData e -> Vectors e
     aux ArrayEltRunit           AD_Unit         = ()
     aux ArrayEltRint            (AD_Int s)      = wrap s

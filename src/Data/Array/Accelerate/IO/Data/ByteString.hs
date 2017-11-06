@@ -40,6 +40,7 @@ import GHC.Base
 
 -- | /O(1)/. Convert a strict 'ByteString' into an Accelerate 'Array'.
 --
+{-# INLINE fromByteString #-}
 fromByteString :: ByteString -> Array DIM1 Word8
 fromByteString (B.toForeignPtr -> (ps,s,l)) =
   Array ((), l) (AD_Word8 (unsafePerformIO (newUniqueArray (plusForeignPtr ps s))))
@@ -47,6 +48,7 @@ fromByteString (B.toForeignPtr -> (ps,s,l)) =
 
 -- | /O(1)/. Convert an Accelerate 'Array' into a strict 'ByteString'.
 --
+{-# INLINE toByteString #-}
 toByteString :: Array sh Word8 -> ByteString
 toByteString (Array sh (AD_Word8 ua))
   = B.fromForeignPtr (unsafeGetValue (uniqueArrayData ua)) 0 (R.size sh)

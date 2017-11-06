@@ -43,6 +43,7 @@ import qualified Data.Array.IArray                              as IArray
 --
 -- ...and so forth.
 --
+{-# INLINE fromIArray #-}
 fromIArray
     :: (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray a e, IArray.Ix ix, Shape sh, Elt ix, Elt e)
     => a ix e
@@ -73,6 +74,7 @@ fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr (offset 
 --
 -- See 'fromIArray' for a discussion on the expected shape types.
 --
+{-# INLINE toIArray #-}
 toIArray
     :: forall ix sh a e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray a e, IArray.Ix ix, Shape sh, Elt ix)
     => ix           -- ^ index lower bound
