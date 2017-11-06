@@ -16,14 +16,20 @@
 -- 'Array's.
 --
 
-module Data.Array.Accelerate.IO.Data.Array.Unboxed
-  where
+module Data.Array.Accelerate.IO.Data.Array.Unboxed (
+
+  IxShapeRepr,
+  fromUArray,
+  toUArray,
+
+) where
 
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Error
 import Data.Array.Accelerate.Lifetime
+import Data.Array.Accelerate.Type
 import qualified Data.Array.Accelerate.Array.Representation         as R
 
 import Data.Array.Accelerate.IO.Data.Array.Internal
@@ -88,17 +94,28 @@ fromUArray (UArray lo hi n ba#) = Array (fromElt sh) (aux (arrayElt :: ArrayEltR
 -- @since 1.1.0.0@
 --
 toUArray
-    :: (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray UArray e, Ix ix, Shape sh, Elt ix)
-    => Array sh e
+    :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray UArray e, Ix ix, Shape sh, Elt ix)
+    => ix           -- ^ index lower bound
+    -> Array sh e
     -> UArray ix e
-toUArray arr@(Array sh adata) =
+toUArray lo arr@(Array sh adata) =
   case ba of
-    ByteArray ba# -> UArray l u n ba#
+    ByteArray ba# -> UArray lo hi n ba#
   where
     n       = R.size sh
-    (lo,hi) = shapeToRange (shape arr)
-    (l,u)   = (fromIxShapeRepr lo, fromIxShapeRepr hi)
+    (_,u)   = shapeToRange (shape arr)
+    hi      = fromIxShapeRepr (offset u)
     ba      = aux arrayElt adata
+
+    offset :: sh -> sh
+    offset = toElt . go (eltType (undefined::sh)) (fromElt (toIxShapeRepr lo :: sh)) . fromElt
+      where
+        go :: TupleType sh' -> sh' -> sh' -> sh'
+        go UnitTuple                                                 ()       ()    = ()
+        go (PairTuple tl tr)                                         (l0, r0) (l,r) = (go tl l0 l, go tr r0 r)
+        go (SingleTuple (NumScalarType (IntegralNumType TypeInt{}))) i0       i     = i0+i
+        go _ _ _
+          = $internalError "toUArray" "error in index offset"
 
     wrap :: forall a. Prim a => UniqueArray a -> ByteArray
     wrap ua = unsafePerformIO $ byteArrayOfForeignPtr (n * sizeOf (undefined::a)) (unsafeGetValue (uniqueArrayData ua))

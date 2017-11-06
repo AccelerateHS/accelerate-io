@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Data.Array.IArray
@@ -14,6 +15,7 @@
 
 module Data.Array.Accelerate.IO.Data.Array.IArray (
 
+  IxShapeRepr,
   fromIArray,
   toIArray,
 
@@ -21,6 +23,7 @@ module Data.Array.Accelerate.IO.Data.Array.IArray (
 
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Type
+import Data.Array.Accelerate.Error
 
 import Data.Array.Accelerate.IO.Data.Array.Internal
 
@@ -63,7 +66,7 @@ fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr (offset 
         go (PairTuple tl tr)                                         (l0, r0) (l,r) = (go tl l0 l, go tr r0 r)
         go (SingleTuple (NumScalarType (IntegralNumType TypeInt{}))) i0       i     = i0+i
         go _ _ _
-          = error "Data.Array.Accelerate.IO.IArray: error in index offset"
+          = $internalError "fromIArray" "error in index offset"
 
 
 -- | /O(n)/. Convert an Accelerate 'Array' to an 'IArray'.
@@ -71,11 +74,26 @@ fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr (offset 
 -- See 'fromIArray' for a discussion on the expected shape types.
 --
 toIArray
-    :: (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray a e, IArray.Ix ix, Shape sh, Elt ix)
-    => Array sh e
+    :: forall ix sh a e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray a e, IArray.Ix ix, Shape sh, Elt ix)
+    => ix           -- ^ index lower bound
+    -> Array sh e
     -> a ix e
-toIArray arr = IArray.array bnds [(ix, arr ! toIxShapeRepr ix) | ix <- IArray.range bnds]
+toIArray ix0 arr = IArray.array bnds0 [(offset ix, arr ! toIxShapeRepr ix) | ix <- IArray.range bnds]
   where
-    (lo,hi) = shapeToRange (shape arr)
-    bnds    = (fromIxShapeRepr lo, fromIxShapeRepr hi)
+    (u,v)         = shapeToRange (shape arr)
+    bnds@(lo,hi)  = (fromIxShapeRepr u, fromIxShapeRepr v)
+    bnds0         = (offset lo, offset hi)
+
+    offset :: ix -> ix
+    offset ix
+      = fromIxShapeRepr
+      . (toElt :: EltRepr sh -> sh)
+      $ go (eltType (undefined::sh)) (fromElt (toIxShapeRepr ix0 :: sh)) (fromElt (toIxShapeRepr ix :: sh))
+      where
+        go :: TupleType sh' -> sh' -> sh' -> sh'
+        go UnitTuple                                                 ()       ()    = ()
+        go (PairTuple tl tr)                                         (l0,r0)  (l,r) = (go tl l0 l, go tr r0 r)
+        go (SingleTuple (NumScalarType (IntegralNumType TypeInt{}))) i0       i     = i0+i
+        go _ _ _
+          = $internalError "toIArray" "error in index offset"
 
