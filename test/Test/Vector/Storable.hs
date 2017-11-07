@@ -30,6 +30,7 @@ import Hedgehog
 import qualified Hedgehog.Gen                                       as Gen
 import qualified Hedgehog.Range                                     as Range
 
+import Data.Word
 import Data.Proxy
 import Data.Functor.Identity
 import Text.Printf
@@ -38,6 +39,10 @@ import Text.Printf
 storable :: Storable e => Int -> Gen e -> Gen (S.Vector e)
 storable n gen =
   S.fromListN n <$> Gen.list (Range.singleton n) gen
+
+boolToWord8 :: Bool -> Word8
+boolToWord8 True  = 1
+boolToWord8 False = 0
 
 test_s2a
     :: forall e. (Storable e, Elt e, Eq e, Vectors (EltRepr e) ~ Vector e)
@@ -120,7 +125,7 @@ test_vector_storable =
       , testProperty "Word32"      $ test_s2a w32
       , testProperty "Word64"      $ test_s2a w64
       , testProperty "Char"        $ test_s2a Gen.unicode
-      , testProperty "Bool"        $ test_s2a Gen.bool
+      , testProperty "Bool"        $ test_s2a (boolToWord8 <$> Gen.bool)
       , testProperty "Float"       $ test_s2a f32
       , testProperty "Double"      $ test_s2a f64
       , testProperty "(Int,Float)" $ test_s2a_t2 int f32
