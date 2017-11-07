@@ -70,7 +70,7 @@ test_i2a _ _ ix e =
   property $ do
     arr <- forAll (iarray ix e)
     let (lo,_) = bounds arr
-    tripping arr (fromIArray :: a ix e -> A.Array sh e) (Identity . toIArray lo)
+    tripping arr (fromIArray :: a ix e -> A.Array sh e) (Identity . toIArray (Just lo))
 
 test_a2i
     :: forall ix sh a e. (Ix ix, IArray a e, Elt ix, Shape sh, Elt e, Show (a ix e), Eq (a ix e), Gen.Shape sh, Eq sh, Eq e, IxShapeRepr (EltRepr ix) ~ EltRepr sh)
@@ -79,13 +79,12 @@ test_a2i
     -> Gen (ix,ix)
     -> Gen e
     -> Property
-test_a2i _ _ ix e =
+test_a2i _ _ _ e =
   property $ do
     sh      <- forAll (shape :: Gen sh)
     arr     <- forAll (Gen.array sh e)
-    (lo,_)  <- forAll ix
     --
-    tripping arr (toIArray lo :: A.Array sh e -> a ix e) (Identity . fromIArray)
+    tripping arr (toIArray Nothing :: A.Array sh e -> a ix e) (Identity . fromIArray)
 
 
 test_array_iarray :: TestTree

@@ -77,17 +77,23 @@ fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr (offset 
 {-# INLINE toIArray #-}
 toIArray
     :: forall ix sh a e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray a e, IArray.Ix ix, Shape sh, Elt ix)
-    => ix           -- ^ index lower bound
+    => Maybe ix           -- ^ if 'Just' this as the index lower bound, otherwise the array is indexed from zero
     -> Array sh e
     -> a ix e
-toIArray ix0 arr = IArray.array bnds0 [(offset ix, arr ! toIxShapeRepr ix) | ix <- IArray.range bnds]
+toIArray mix0 arr = IArray.array bnds0 [(offset ix, arr ! toIxShapeRepr ix) | ix <- IArray.range bnds]
   where
     (u,v)         = shapeToRange (shape arr)
     bnds@(lo,hi)  = (fromIxShapeRepr u, fromIxShapeRepr v)
     bnds0         = (offset lo, offset hi)
 
     offset :: ix -> ix
-    offset ix
+    offset ix =
+      case mix0 of
+        Nothing  -> ix
+        Just ix0 -> offset' ix0 ix
+
+    offset' :: ix -> ix -> ix
+    offset' ix0 ix
       = fromIxShapeRepr
       . (toElt :: EltRepr sh -> sh)
       $ go (eltType (undefined::sh)) (fromElt (toIxShapeRepr ix0 :: sh)) (fromElt (toIxShapeRepr ix :: sh))

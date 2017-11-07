@@ -97,20 +97,27 @@ fromUArray (UArray lo hi n ba#) = Array (fromElt sh) (aux (arrayElt :: ArrayEltR
 {-# INLINE toUArray #-}
 toUArray
     :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray UArray e, Ix ix, Shape sh, Elt ix)
-    => ix           -- ^ index lower bound
+    => Maybe ix         -- ^ if 'Just' this is the index lower bound, otherwise the array is indexed from zero
     -> Array sh e
     -> UArray ix e
-toUArray lo arr@(Array sh adata) =
+toUArray mix0 arr@(Array sh adata) =
   case ba of
     ByteArray ba# -> UArray lo hi n ba#
   where
     n       = R.size sh
-    (_,u)   = shapeToRange (shape arr)
-    hi      = fromIxShapeRepr (offset u)
+    bnds    = shapeToRange (shape arr)
+    lo      = fromIxShapeRepr (offset (fst bnds))
+    hi      = fromIxShapeRepr (offset (snd bnds))
     ba      = aux arrayElt adata
 
     offset :: sh -> sh
-    offset = toElt . go (eltType (undefined::sh)) (fromElt (toIxShapeRepr lo :: sh)) . fromElt
+    offset ix =
+      case mix0 of
+        Nothing  -> ix
+        Just ix0 -> offset' ix0 ix
+
+    offset' :: ix -> sh -> sh
+    offset' ix0 = toElt . go (eltType (undefined::sh)) (fromElt (toIxShapeRepr ix0 :: sh)) . fromElt
       where
         go :: TupleType sh' -> sh' -> sh' -> sh'
         go UnitTuple                                                 ()       ()    = ()

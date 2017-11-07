@@ -44,7 +44,7 @@ test_u2a _ ix e =
   property $ do
     arr <- forAll (iarray ix e)
     let (lo,_) = bounds arr
-    tripping arr (fromUArray :: UArray ix e -> A.Array sh e) (Identity . toUArray lo)
+    tripping arr (fromUArray :: UArray ix e -> A.Array sh e) (Identity . toUArray (Just lo))
 
 test_a2u
     :: forall ix sh e. (Ix ix, IArray UArray e, Elt ix, Shape sh, Elt e, Show (UArray ix e), Eq (UArray ix e), Gen.Shape sh, Eq sh, Eq e, IxShapeRepr (EltRepr ix) ~ EltRepr sh)
@@ -52,13 +52,12 @@ test_a2u
     -> Gen (ix,ix)
     -> Gen e
     -> Property
-test_a2u _ ix e =
+test_a2u _ _ e =
   property $ do
     sh      <- forAll (shape :: Gen sh)
     arr     <- forAll (Gen.array sh e)
-    (lo,_)  <- forAll ix
     --
-    tripping arr (toUArray lo :: A.Array sh e -> UArray ix e) (Identity . fromUArray)
+    tripping arr (toUArray Nothing :: A.Array sh e -> UArray ix e) (Identity . fromUArray)
 
 test_array_unboxed :: TestTree
 test_array_unboxed =
