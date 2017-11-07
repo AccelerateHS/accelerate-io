@@ -96,6 +96,8 @@ test_a2s_dim dim =
     , testProperty "Word16"                 $ test_a2s dim w16
     , testProperty "Word32"                 $ test_a2s dim w32
     , testProperty "Word64"                 $ test_a2s dim w64
+    , testProperty "Char"                   $ test_a2s dim Gen.unicode
+    , testProperty "Bool"                   $ test_a2s dim Gen.bool
     , testProperty "Float"                  $ test_a2s dim f32
     , testProperty "Double"                 $ test_a2s dim f64
     , testProperty "Complex Float"          $ test_a2s dim (complex f32)
@@ -117,6 +119,8 @@ test_vector_storable =
       , testProperty "Word16"      $ test_s2a w16
       , testProperty "Word32"      $ test_s2a w32
       , testProperty "Word64"      $ test_s2a w64
+      , testProperty "Char"        $ test_s2a Gen.unicode
+      , testProperty "Bool"        $ test_s2a Gen.bool
       , testProperty "Float"       $ test_s2a f32
       , testProperty "Double"      $ test_s2a f64
       , testProperty "(Int,Float)" $ test_s2a_t2 int f32

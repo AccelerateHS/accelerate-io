@@ -76,6 +76,8 @@ test_a2u_dim dim =
     , testProperty "Word16"                 $ test_a2u dim w16
     , testProperty "Word32"                 $ test_a2u dim w32
     , testProperty "Word64"                 $ test_a2u dim w64
+    , testProperty "Char"                   $ test_a2u dim Gen.unicode
+    , testProperty "Bool"                   $ test_a2u dim Gen.bool
     , testProperty "Float"                  $ test_a2u dim f32
     , testProperty "Double"                 $ test_a2u dim f64
     , testProperty "Complex Float"          $ test_a2u dim (complex f32)
@@ -97,6 +99,8 @@ test_vector_unboxed =
       , testProperty "Word16"               $ test_u2a w16
       , testProperty "Word32"               $ test_u2a w32
       , testProperty "Word64"               $ test_u2a w64
+      , testProperty "Char"                 $ test_u2a Gen.unicode
+      , testProperty "Bool"                 $ test_u2a Gen.bool
       , testProperty "Float"                $ test_u2a f32
       , testProperty "Double"               $ test_u2a f64
       , testProperty "Complex Float"        $ test_u2a (complex f32)
