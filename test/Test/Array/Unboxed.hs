@@ -20,9 +20,10 @@ import Test.Util
 import Test.Tasty
 import Test.Tasty.Hedgehog
 
-import Data.Array.Accelerate                                        as A ( Array, Shape, Elt, DIM1, DIM2 )
-import Data.Array.Accelerate.Array.Sugar                            as A ( EltRepr )
+import Data.Array.Accelerate                                        ( Shape, Elt, DIM1, DIM2 )
+import Data.Array.Accelerate.Array.Sugar                            ( EltRepr )
 import Data.Array.Accelerate.IO.Data.Array.Unboxed                  as A
+import qualified Data.Array.Accelerate                              as A
 import qualified Data.Array.Accelerate.Hedgehog.Gen.Array           as Gen
 import qualified Data.Array.Accelerate.Hedgehog.Gen.Shape           as Gen
 
@@ -31,20 +32,24 @@ import Data.Array.Unboxed                                           as U
 import Hedgehog
 
 import Data.Proxy
-import Data.Functor.Identity
 
 
 test_u2a
-    :: forall ix sh e. (Ix ix, IArray UArray e, Elt ix, Shape sh, Elt e, Show (UArray ix e), Eq (UArray ix e), IxShapeRepr (EltRepr ix) ~ EltRepr sh)
+    :: forall ix sh e. (Ix ix, IArray UArray e, Elt ix, Shape sh, Elt e, Eq e, Show (UArray ix e), Eq (UArray ix e), IxShapeRepr (EltRepr ix) ~ EltRepr sh)
     => Proxy sh
     -> Gen (ix,ix)
     -> Gen e
     -> Property
 test_u2a _ ix e =
   property $ do
-    arr <- forAll (iarray ix e)
-    let (lo,_) = bounds arr
-    tripping arr (fromUArray :: UArray ix e -> A.Array sh e) (Identity . toUArray (Just lo))
+    ua <- forAll (iarray ix e :: Gen (UArray ix e))
+    let
+        (lo,_)  = bounds ua
+        acc     = fromUArray ua :: A.Array sh e
+        ua'     = toUArray (Just lo) acc
+    --
+    U.elems ua === A.toList acc   -- elements convert correctly
+    ua         === ua'            -- indices round-trip correctly
 
 test_a2u
     :: forall ix sh e. (Ix ix, IArray UArray e, Elt ix, Shape sh, Elt e, Show (UArray ix e), Eq (UArray ix e), Gen.Shape sh, Eq sh, Eq e, IxShapeRepr (EltRepr ix) ~ EltRepr sh)
@@ -57,7 +62,8 @@ test_a2u _ _ e =
     sh      <- forAll (shape :: Gen sh)
     arr     <- forAll (Gen.array sh e)
     --
-    tripping arr (toUArray Nothing :: A.Array sh e -> UArray ix e) (Identity . fromUArray)
+    A.toList arr === U.elems (toUArray Nothing arr :: UArray ix e)
+
 
 test_array_unboxed :: TestTree
 test_array_unboxed =

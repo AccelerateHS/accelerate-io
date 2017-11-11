@@ -18,19 +18,20 @@ import Test.Util
 import Test.Tasty
 import Test.Tasty.Hedgehog
 
-import Data.Array.Accelerate                                        as A ( Array, Shape, Elt, DIM1, DIM2 )
-import Data.Array.Accelerate.Array.Sugar                            as A ( EltRepr )
+import Data.Array.Accelerate                                        ( Shape, Elt, DIM1, DIM2 )
+import Data.Array.Accelerate.Array.Sugar                            ( EltRepr )
 import Data.Array.Accelerate.IO.Data.Array.IArray                   as A
+import qualified Data.Array.Accelerate                              as A
 import qualified Data.Array.Accelerate.Hedgehog.Gen.Array           as Gen
 import qualified Data.Array.Accelerate.Hedgehog.Gen.Shape           as Gen
 
-import Data.Array.IArray                                            as I hiding ( indices, elems )
+import Data.Array.IArray                                            hiding ( indices, elems )
+import qualified Data.Array.IArray                                  as I
 
 import Hedgehog
 import qualified Hedgehog.Gen                                       as Gen
 import qualified Hedgehog.Range                                     as Range
 
-import Data.Functor.Identity
 import Data.Proxy
 import Prelude
 
@@ -60,7 +61,7 @@ iarray ix e = do
 
 
 test_i2a
-    :: forall ix sh a e. (Ix ix, IArray a e, Elt ix, Shape sh, Elt e, Show (a ix e), Eq (a ix e), IxShapeRepr (EltRepr ix) ~ EltRepr sh)
+    :: forall ix sh a e. (Ix ix, IArray a e, Elt ix, Shape sh, Elt e, Eq e, Show (a ix e), Eq (a ix e), IxShapeRepr (EltRepr ix) ~ EltRepr sh)
     => Proxy a
     -> Proxy sh
     -> Gen (ix,ix)
@@ -68,12 +69,17 @@ test_i2a
     -> Property
 test_i2a _ _ ix e =
   property $ do
-    arr <- forAll (iarray ix e)
-    let (lo,_) = bounds arr
-    tripping arr (fromIArray :: a ix e -> A.Array sh e) (Identity . toIArray (Just lo))
+    ia  <- forAll (iarray ix e :: Gen (a ix e))
+    let
+        (lo,_) = bounds ia
+        acc    = fromIArray ia :: A.Array sh e
+        ia'    = toIArray (Just lo) acc
+    --
+    I.elems ia === A.toList acc  -- elements convert correctly
+    ia         === ia'           -- indices round-trip correctly
 
 test_a2i
-    :: forall ix sh a e. (Ix ix, IArray a e, Elt ix, Shape sh, Elt e, Show (a ix e), Eq (a ix e), Gen.Shape sh, Eq sh, Eq e, IxShapeRepr (EltRepr ix) ~ EltRepr sh)
+    :: forall ix sh a e. (Ix ix, IArray a e, Elt ix, Shape sh, Elt e, Eq e, Show (a ix e), Gen.Shape sh, Eq sh, Eq e, IxShapeRepr (EltRepr ix) ~ EltRepr sh)
     => Proxy a
     -> Proxy sh
     -> Gen (ix,ix)
@@ -81,10 +87,10 @@ test_a2i
     -> Property
 test_a2i _ _ _ e =
   property $ do
-    sh      <- forAll (shape :: Gen sh)
-    arr     <- forAll (Gen.array sh e)
+    sh  <- forAll (shape :: Gen sh)
+    acc <- forAll (Gen.array sh e)
     --
-    tripping arr (toIArray Nothing :: A.Array sh e -> a ix e) (Identity . fromIArray)
+    A.toList acc === I.elems (toIArray Nothing acc :: a ix e)
 
 
 test_array_iarray :: TestTree

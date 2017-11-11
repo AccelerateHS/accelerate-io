@@ -18,9 +18,10 @@ import Test.Util
 import Test.Tasty
 import Test.Tasty.Hedgehog
 
-import Data.Array.Accelerate                                        ( Array, Shape, Elt, DIM0, DIM1, DIM2, Z(..), (:.)(..) )
+import Data.Array.Accelerate                                        ( Shape, Elt, DIM0, DIM1, DIM2, Z(..), (:.)(..) )
 import Data.Array.Accelerate.Array.Sugar                            ( rank, EltRepr )
 import Data.Array.Accelerate.IO.Data.Vector.Storable                as A
+import qualified Data.Array.Accelerate                              as A
 import qualified Data.Array.Accelerate.Hedgehog.Gen.Array           as Gen
 import qualified Data.Array.Accelerate.Hedgehog.Gen.Shape           as Gen
 
@@ -32,8 +33,8 @@ import qualified Hedgehog.Range                                     as Range
 
 import Data.Word
 import Data.Proxy
-import Data.Functor.Identity
 import Text.Printf
+import Prelude                                                      as P
 
 
 storable :: Storable e => Int -> Gen e -> Gen (S.Vector e)
@@ -53,7 +54,7 @@ test_s2a e =
     sh@(Z :. n) <- forAll shape
     svec        <- forAll (storable n e)
     --
-    tripping svec (A.fromVectors sh :: Vector e -> Array DIM1 e) (Identity . A.toVectors)
+    S.toList svec === A.toList (A.fromVectors sh svec)
 
 test_s2a_t2
     :: forall a b. ( Storable a, Elt a, Eq a, Vectors (EltRepr a) ~ Vector a
@@ -67,13 +68,12 @@ test_s2a_t2 a b =
     sh@(Z :. n) <- forAll shape
     sa          <- forAll (storable n a)
     sb          <- forAll (storable n b)
-    let svecs    = (((), sa), sb)
     --
-    tripping svecs (A.fromVectors sh :: Vectors (EltRepr (a,b)) -> Array DIM1 (a,b)) (Identity . A.toVectors)
+    P.zip (S.toList sa) (S.toList sb) === A.toList (A.fromVectors sh (((), sa), sb))
 
 
 test_a2s
-    :: forall sh e. (Gen.Shape sh, Shape sh, Elt e, Eq sh, Eq e, Show (Vectors (EltRepr e)))
+    :: forall sh e. (Gen.Shape sh, Shape sh, Storable e, Elt e, Eq sh, Eq e, Vectors (EltRepr e) ~ Vector e)
     => Proxy sh
     -> Gen e
     -> Property
@@ -82,7 +82,23 @@ test_a2s _ e =
     sh  <- forAll (shape :: Gen sh)
     arr <- forAll (Gen.array sh e)
     --
-    tripping arr A.toVectors (Identity . A.fromVectors sh)
+    A.toList arr === S.toList (A.toVectors arr)
+
+test_a2s_t2
+    :: forall sh a b. ( Gen.Shape sh, Shape sh, Eq sh, Eq a, Eq b, Elt a, Elt b, Storable a, Storable b
+                      , Vectors (EltRepr (a,b)) ~ (((), Vector a), Vector b)
+                      )
+    => Proxy sh
+    -> Gen (a,b)
+    -> Property
+test_a2s_t2 _ e =
+  property $ do
+    sh  <- forAll (shape :: Gen sh)
+    arr <- forAll (Gen.array sh e)
+    let
+        (((), va), vb) = A.toVectors arr
+    --
+    A.toList arr === P.zip (S.toList va) (S.toList vb)
 
 
 test_a2s_dim
@@ -102,12 +118,13 @@ test_a2s_dim dim =
     , testProperty "Word32"                 $ test_a2s dim w32
     , testProperty "Word64"                 $ test_a2s dim w64
     , testProperty "Char"                   $ test_a2s dim Gen.unicode
-    , testProperty "Bool"                   $ test_a2s dim Gen.bool
+    -- , testProperty "Bool"                   $ test_a2s dim Gen.bool
     , testProperty "Float"                  $ test_a2s dim f32
     , testProperty "Double"                 $ test_a2s dim f64
-    , testProperty "Complex Float"          $ test_a2s dim (complex f32)
-    , testProperty "(Double, Int16)"        $ test_a2s dim ((,) <$> f64 <*> i16)
-    , testProperty "(Float, (Double,Int))"  $ test_a2s dim ((,) <$> f32 <*> ((,) <$> f64 <*> int))
+    -- , testProperty "Complex Float"          $ test_a2s_t2 dim (complex f32)
+    , testProperty "(Double, Int16)"        $ test_a2s_t2 dim ((,) <$> f64 <*> i16)
+    , testProperty "(Float, Float)"         $ test_a2s_t2 dim ((,) <$> f32 <*> f32)
+    -- , testProperty "(Float, (Double,Int))"  $ test_a2s dim ((,) <$> f32 <*> ((,) <$> f64 <*> int))
     ]
 
 test_vector_storable :: TestTree
