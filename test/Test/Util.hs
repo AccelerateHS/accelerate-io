@@ -16,11 +16,10 @@
 
 module Test.Util where
 
-import Data.Array.Accelerate                                        ( Shape, Arrays, Acc )
+import Data.Array.Accelerate                                        ( Arrays, Array, Acc, Shape, Elt )
 import Data.Array.Accelerate.Trafo                                  ( Afunction, AfunctionR )
-import Data.Array.Accelerate.Array.Sugar                            ( rank )
+import Data.Array.Accelerate.Array.Sugar                            ( DIM1, DIM2, Z(..), (:.)(..), fromList, size )
 import Data.Array.Accelerate.Data.Complex
-import qualified Data.Array.Accelerate.Hedgehog.Gen.Shape           as Gen
 
 import Hedgehog
 import qualified Hedgehog.Gen                                       as Gen
@@ -40,11 +39,34 @@ floating = Gen.realFloat (Range.linearFracFrom 0 (-1) 1)
 complex :: Gen a -> Gen (Complex a)
 complex f = (:+) <$> f <*> f
 
-shape :: forall sh. (Gen.Shape sh, Shape sh) => Gen sh
-shape = Gen.shape (Range.linear 1 (512 `quot` (2 ^ r)))
-  where
-    r = rank (undefined::sh)
+dim0 :: Gen Z
+dim0 = return Z
 
+dim1 :: Gen DIM1
+dim1 = (Z :.) <$> Gen.int (Range.linear 0 1024)
+
+dim2 :: Gen DIM2
+dim2 = do
+  x <- Gen.int (Range.linear 0 128)
+  y <- Gen.int (Range.linear 0 128)
+  return (Z :. y :. x)
+
+ix1 :: Gen (Int,Int)
+ix1 = do
+  lo <- Gen.int (Range.linearFrom 0 (-128) 128)
+  hi <- Gen.int (Range.linear lo (lo+256))
+  return (lo,hi)
+
+ix2 :: Gen ((Int,Int), (Int,Int))
+ix2 = do
+  l0 <- Gen.int (Range.linearFrom 0 (-64) (64))
+  l1 <- Gen.int (Range.linearFrom 0 (-64) (64))
+  h0 <- Gen.int (Range.linear l0 (l0+128))
+  h1 <- Gen.int (Range.linear l1 (l1+128))
+  return ((l0,l1), (h0,h1))
+
+array :: (Shape sh, Elt e) => sh -> Gen e -> Gen (Array sh e)
+array sh gen = fromList sh <$> Gen.list (Range.singleton (size sh)) gen
 
 int :: Gen Int
 int = Gen.int Range.linearBounded

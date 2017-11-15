@@ -16,12 +16,10 @@ import Test.Util
 import Test.Tasty
 import Test.Tasty.Hedgehog
 
-import Data.Array.Accelerate                                        ( Shape, Elt, DIM0, DIM1, DIM2, Z(..), (:.)(..) )
+import Data.Array.Accelerate                                        ( Shape, Elt, Z(..), (:.)(..) )
 import Data.Array.Accelerate.Array.Sugar                            ( rank )
 import Data.Array.Accelerate.IO.Data.Vector.Unboxed                 as A
 import qualified Data.Array.Accelerate                              as A
-import qualified Data.Array.Accelerate.Hedgehog.Gen.Array           as Gen
-import qualified Data.Array.Accelerate.Hedgehog.Gen.Shape           as Gen
 
 import Data.Vector.Unboxed                                          as U
 
@@ -29,7 +27,6 @@ import Hedgehog
 import qualified Hedgehog.Gen                                       as Gen
 import qualified Hedgehog.Range                                     as Range
 
-import Data.Proxy
 import Text.Printf
 
 
@@ -43,26 +40,26 @@ test_u2a
     -> Property
 test_u2a e =
   property $ do
-    Z :. n <- forAll shape
+    Z :. n <- forAll dim1
     uvec   <- forAll (unboxed n e)
     --
     U.toList uvec === A.toList (A.fromUnboxed uvec)
 
 test_a2u
-    :: forall sh e. (A.Unbox e, Gen.Shape sh, Shape sh, Elt e, Eq sh, Eq e)
-    => Proxy sh
+    :: forall sh e. (A.Unbox e, Shape sh, Elt e, Eq sh, Eq e)
+    => Gen sh
     -> Gen e
     -> Property
-test_a2u _ e =
+test_a2u dim e =
   property $ do
-    sh  <- forAll (shape :: Gen sh)
-    arr <- forAll (Gen.array sh e)
+    sh  <- forAll dim
+    arr <- forAll (array sh e)
     --
     A.toList arr === U.toList (A.toUnboxed arr)
 
 test_a2u_dim
-    :: forall sh. (Gen.Shape sh, Shape sh, Eq sh)
-    => Proxy sh
+    :: forall sh. (Shape sh, Eq sh)
+    => Gen sh
     -> TestTree
 test_a2u_dim dim =
   testGroup (printf "DIM%d" (rank (undefined::sh)))
@@ -108,9 +105,9 @@ test_vector_unboxed =
       , testProperty "((Int8,Word),Double)" $ test_u2a ((,) <$> ((,) <$> i8 <*> word) <*> f64)
       ]
     , testGroup"accelerate->unboxed"
-      [ test_a2u_dim (Proxy::Proxy DIM0)
-      , test_a2u_dim (Proxy::Proxy DIM1)
-      , test_a2u_dim (Proxy::Proxy DIM2)
+      [ test_a2u_dim dim0
+      , test_a2u_dim dim1
+      , test_a2u_dim dim2
       ]
     ]
 

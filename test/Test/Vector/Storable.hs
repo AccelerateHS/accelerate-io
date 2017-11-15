@@ -18,12 +18,10 @@ import Test.Util
 import Test.Tasty
 import Test.Tasty.Hedgehog
 
-import Data.Array.Accelerate                                        ( Shape, Elt, DIM0, DIM1, DIM2, Z(..), (:.)(..) )
+import Data.Array.Accelerate                                        ( Shape, Elt, Z(..), (:.)(..) )
 import Data.Array.Accelerate.Array.Sugar                            ( rank, EltRepr )
 import Data.Array.Accelerate.IO.Data.Vector.Storable                as A
 import qualified Data.Array.Accelerate                              as A
-import qualified Data.Array.Accelerate.Hedgehog.Gen.Array           as Gen
-import qualified Data.Array.Accelerate.Hedgehog.Gen.Shape           as Gen
 
 import Data.Vector.Storable                                         as S
 
@@ -32,7 +30,6 @@ import qualified Hedgehog.Gen                                       as Gen
 import qualified Hedgehog.Range                                     as Range
 
 import Data.Word
-import Data.Proxy
 import Text.Printf
 import Prelude                                                      as P
 
@@ -51,7 +48,7 @@ test_s2a
     -> Property
 test_s2a e =
   property $ do
-    sh@(Z :. n) <- forAll shape
+    sh@(Z :. n) <- forAll dim1
     svec        <- forAll (storable n e)
     --
     S.toList svec === A.toList (A.fromVectors sh svec)
@@ -65,7 +62,7 @@ test_s2a_t2
     -> Property
 test_s2a_t2 a b =
   property $ do
-    sh@(Z :. n) <- forAll shape
+    sh@(Z :. n) <- forAll dim1
     sa          <- forAll (storable n a)
     sb          <- forAll (storable n b)
     --
@@ -73,28 +70,28 @@ test_s2a_t2 a b =
 
 
 test_a2s
-    :: forall sh e. (Gen.Shape sh, Shape sh, Storable e, Elt e, Eq sh, Eq e, Vectors (EltRepr e) ~ Vector e)
-    => Proxy sh
+    :: forall sh e. (Shape sh, Storable e, Elt e, Eq sh, Eq e, Vectors (EltRepr e) ~ Vector e)
+    => Gen sh
     -> Gen e
     -> Property
-test_a2s _ e =
+test_a2s dim e =
   property $ do
-    sh  <- forAll (shape :: Gen sh)
-    arr <- forAll (Gen.array sh e)
+    sh  <- forAll dim
+    arr <- forAll (array sh e)
     --
     A.toList arr === S.toList (A.toVectors arr)
 
 test_a2s_t2
-    :: forall sh a b. ( Gen.Shape sh, Shape sh, Eq sh, Eq a, Eq b, Elt a, Elt b, Storable a, Storable b
+    :: forall sh a b. ( Shape sh, Eq sh, Eq a, Eq b, Elt a, Elt b, Storable a, Storable b
                       , Vectors (EltRepr (a,b)) ~ (((), Vector a), Vector b)
                       )
-    => Proxy sh
+    => Gen sh
     -> Gen (a,b)
     -> Property
-test_a2s_t2 _ e =
+test_a2s_t2 dim e =
   property $ do
-    sh  <- forAll (shape :: Gen sh)
-    arr <- forAll (Gen.array sh e)
+    sh  <- forAll dim
+    arr <- forAll (array sh e)
     let
         (((), va), vb) = A.toVectors arr
     --
@@ -102,8 +99,8 @@ test_a2s_t2 _ e =
 
 
 test_a2s_dim
-    :: forall sh. (Gen.Shape sh, Shape sh, Eq sh)
-    => Proxy sh
+    :: forall sh. (Shape sh, Eq sh)
+    => Gen sh
     -> TestTree
 test_a2s_dim dim =
   testGroup (printf "DIM%d" (rank (undefined::sh)))
@@ -149,9 +146,9 @@ test_vector_storable =
       , testProperty "(Int8,Word)" $ test_s2a_t2 i8 word
       ]
     , testGroup"accelerate->storable"
-      [ test_a2s_dim (Proxy::Proxy DIM0)
-      , test_a2s_dim (Proxy::Proxy DIM1)
-      , test_a2s_dim (Proxy::Proxy DIM2)
+      [ test_a2s_dim dim0
+      , test_a2s_dim dim1
+      , test_a2s_dim dim2
       ]
     ]
 

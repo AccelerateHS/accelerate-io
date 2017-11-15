@@ -6,13 +6,8 @@ resolver: lts-6.30
 packages:
 - '.'
 
-- location:
-    git:    https://github.com/tmcdonell/accelerate.git
-    commit: 3299df187a3b0d0400cde40002d343dd558ece18
-  extra-dep: true
-
 extra-deps:
-# - 'accelerate-1.1.1.0'
+- 'accelerate-1.1.1.0'
 - 'cabal-doctest-1.0.2'
 - 'hedgehog-0.5'
 - 'tasty-hedgehog-0.1.0.1'

@@ -90,7 +90,7 @@ test-suite test-io
 
   build-depends:
         base                    >= 4.7  && < 4.11
-      , accelerate              >= 1.2
+      , accelerate
       , accelerate-io
       , array
       , hedgehog                >= 0.5
