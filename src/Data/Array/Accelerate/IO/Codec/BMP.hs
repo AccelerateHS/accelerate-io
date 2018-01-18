@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP             #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Codec.BMP
@@ -44,8 +45,18 @@ readImageFromBMP file = do
     Left err    -> return $ Left err
     Right bmp   -> do
       let (w,h) = bmpDimensions bmp
-          bs    = unpackBMPToRGBA32 bmp
+          bs    = unpackBMPToRGBA32 bmp'
           arr   = fromByteStrings (Z :. h :. w) bs
+          --
+          bmp'  = bmp { bmpBitmapInfo = info' }
+          info' = case bmpBitmapInfo bmp of
+                    InfoV3 i -> InfoV3 (info3 i)
+                    InfoV4 i -> InfoV4 (info4 i)
+                    InfoV5 i -> InfoV5 (info5 i)
+
+          info3 BitmapInfoV3{..} = BitmapInfoV3 { dib3HeightFlipped = not dib3HeightFlipped, .. }
+          info4 BitmapInfoV4{..} = BitmapInfoV4 { dib4InfoV3 = info3 dib4InfoV3, .. }
+          info5 BitmapInfoV5{..} = BitmapInfoV5 { dib5InfoV4 = info4 dib5InfoV4, .. }
       --
       return $ Right arr
 
@@ -53,8 +64,19 @@ readImageFromBMP file = do
 -- | Write the image data to a file.
 --
 writeImageToBMP :: FilePath -> Array DIM2 RGBA32 -> IO ()
-writeImageToBMP file rgba = writeBMP file (packRGBA32ToBMP w h bs)
+writeImageToBMP file rgba = writeBMP file bmp'
   where
     Z :. h :. w = shape rgba
     bs          = toByteStrings rgba
+    bmp         = packRGBA32ToBMP w h bs
+    --
+    bmp'        = bmp { bmpBitmapInfo = info' }
+    info'       = case bmpBitmapInfo bmp of
+                    InfoV3 i -> InfoV3 (info3 i)
+                    InfoV4 i -> InfoV4 (info4 i)
+                    InfoV5 i -> InfoV5 (info5 i)
+
+    info3 BitmapInfoV3{..} = BitmapInfoV3 { dib3Height = -dib3Height, dib3HeightFlipped = True, .. }
+    info4 BitmapInfoV4{..} = BitmapInfoV4 { dib4InfoV3 = info3 dib4InfoV3, .. }
+    info5 BitmapInfoV5{..} = BitmapInfoV5 { dib5InfoV4 = info4 dib5InfoV4, .. }
 
