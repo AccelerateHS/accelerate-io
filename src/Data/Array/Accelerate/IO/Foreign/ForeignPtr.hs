@@ -112,9 +112,7 @@ fromForeignPtrs sh fps = Array (fromElt sh) (aux arrayElt fps)
 -- | /O(1)/. Yield the 'ForeignPtr's underlying the given Accelerate 'Array'.
 -- The element type @e@ will determine the structure of the output collection.
 --
--- Data is considered to be in row-major output.
---
--- The data may not be modified through the 'ForeignPtr's
+-- Data is considered to be in row-major order.
 --
 -- @since 1.1.0.0@
 --
