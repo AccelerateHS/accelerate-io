@@ -71,6 +71,7 @@ type instance ForeignPtrs (a,b)   = (ForeignPtrs a, ForeignPtrs b)
 --
 -- @since 1.1.0.0@
 --
+{-# INLINE fromForeignPtrs #-}
 fromForeignPtrs :: (Shape sh, Elt e) => sh -> ForeignPtrs (EltRepr e) -> Array sh e
 fromForeignPtrs sh fps = Array (fromElt sh) (aux arrayElt fps)
   where
@@ -116,6 +117,7 @@ fromForeignPtrs sh fps = Array (fromElt sh) (aux arrayElt fps)
 --
 -- @since 1.1.0.0@
 --
+{-# LANGUAGE toForeignPts #-}
 toForeignPtrs :: (Shape sh, Elt e) => Array sh e -> ForeignPtrs (EltRepr e)
 toForeignPtrs (Array _ adata) = aux arrayElt adata
   where

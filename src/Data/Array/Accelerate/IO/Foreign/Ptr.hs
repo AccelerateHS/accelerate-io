@@ -41,6 +41,7 @@ type Ptrs e = ArrayPtrs e
 --
 -- @since 1.1.0.0@
 --
+{-# INLINE fromPtrs #-}
 fromPtrs :: (Shape sh, Elt e) => sh -> Ptrs (EltRepr e) -> Array sh e
 fromPtrs sh ps = Array (fromElt sh) (aux arrayElt ps)
   where
@@ -86,6 +87,7 @@ fromPtrs sh ps = Array (fromElt sh) (aux arrayElt ps)
 --
 -- @since 1.1.0.0@
 --
+{-# INLINE toPtrs #-}
 toPtrs :: (Shape sh, Elt e) => Array sh e -> Ptrs (EltRepr e)
 toPtrs (Array _ adata) = ptrsOfArrayData adata
 
