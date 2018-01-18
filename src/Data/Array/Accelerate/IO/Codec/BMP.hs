@@ -23,18 +23,8 @@ module Data.Array.Accelerate.IO.Codec.BMP (
 
 import Data.Word
 import Codec.BMP
-import Foreign.ForeignPtr
 
-import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar
-import Data.Array.Accelerate.Array.Unique
-import Data.Array.Accelerate.Lifetime
-
-#if !MIN_VERSION_accelerate(1,2,0)
-import Data.Array.Accelerate.Error
-import qualified Data.Array.Accelerate.Array.Representation         as R
-#endif
-
 import Data.Array.Accelerate.IO.Data.ByteString
 
 
@@ -55,9 +45,9 @@ readImageFromBMP file = do
     Right bmp   -> do
       let (w,h) = bmpDimensions bmp
           bs    = unpackBMPToRGBA32 bmp
-          arr   = reshape (Z :. h :. w*4) $ fromByteString bs
+          arr   = fromByteStrings (Z :. h :. w) bs
       --
-      return $ Right (w32 arr)
+      return $ Right arr
 
 
 -- | Write the image data to a file.
@@ -66,22 +56,5 @@ writeImageToBMP :: FilePath -> Array DIM2 RGBA32 -> IO ()
 writeImageToBMP file rgba = writeBMP file (packRGBA32ToBMP w h bs)
   where
     Z :. h :. w = shape rgba
-    bs          = toByteString (w8 rgba)
-
-
-w8 :: Array DIM2 Word32 -> Array DIM2 Word8
-w8 (Array (((),h),w) (AD_Word32 ua)) = Array (((),h),w*4) (AD_Word8 (castUniqueArray ua))
-
-w32 :: Array DIM2 Word8 -> Array DIM2 Word32
-w32 (Array (((),h),w) (AD_Word8 ua)) = Array (((),h),w`quot`4) (AD_Word32 (castUniqueArray ua))
-
-castUniqueArray :: UniqueArray a -> UniqueArray b
-castUniqueArray (UniqueArray uid (Lifetime ref w p)) = UniqueArray uid (Lifetime ref w (castForeignPtr p))
-
-#if !MIN_VERSION_accelerate(1,2,0)
-reshape :: (Shape sh, Shape sh', Elt e) => sh -> Array sh' e -> Array sh e
-reshape sh (Array sh' adata)
-  = $boundsCheck "reshape" "shape mismatch" (size sh == R.size sh')
-  $ Array (fromElt sh) adata
-#endif
+    bs          = toByteStrings rgba
 
