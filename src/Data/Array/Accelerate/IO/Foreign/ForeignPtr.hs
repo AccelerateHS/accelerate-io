@@ -69,6 +69,8 @@ type instance ForeignPtrs (a,b)   = (ForeignPtrs a, ForeignPtrs b)
 --
 -- The data may not be modified through the 'ForeignPtr's afterwards.
 --
+-- You should make sure that the data is suitably aligned.
+--
 -- @since 1.1.0.0@
 --
 {-# INLINE fromForeignPtrs #-}

@@ -39,6 +39,8 @@ type Ptrs e = ArrayPtrs e
 -- You are responsible for ensuring that the data remains alive for the duration
 -- of the Accelerate computation, and for freeing it afterwards.
 --
+-- You should make sure that the data is suitably aligned.
+--
 -- @since 1.1.0.0@
 --
 {-# INLINE fromPtrs #-}
