@@ -27,13 +27,11 @@ import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Lifetime
+import Data.Array.Accelerate.Type
 import qualified Data.Array.Accelerate.Array.Representation         as R
 
 import Data.ByteString                                              as B
 import Data.ByteString.Internal                                     as B
-import Data.Int
-import Data.Word
-import Foreign.C.Types
 import Foreign.ForeignPtr
 import Foreign.Storable
 import System.IO.Unsafe
@@ -69,6 +67,7 @@ type instance ByteStrings CULong  = ByteString
 type instance ByteStrings CLLong  = ByteString
 type instance ByteStrings CULLong = ByteString
 type instance ByteStrings CShort  = ByteString
+type instance ByteStrings Half    = ByteString
 type instance ByteStrings Float   = ByteString
 type instance ByteStrings Double  = ByteString
 type instance ByteStrings CFloat  = ByteString
@@ -78,6 +77,11 @@ type instance ByteStrings Char    = ByteString
 type instance ByteStrings CChar   = ByteString
 type instance ByteStrings CSChar  = ByteString
 type instance ByteStrings CUChar  = ByteString
+type instance ByteStrings (V2 a)  = ByteStrings a
+type instance ByteStrings (V3 a)  = ByteStrings a
+type instance ByteStrings (V4 a)  = ByteStrings a
+type instance ByteStrings (V8 a)  = ByteStrings a
+type instance ByteStrings (V16 a) = ByteStrings a
 type instance ByteStrings (a,b)   = (ByteStrings a, ByteStrings b)
 
 
@@ -120,6 +124,7 @@ fromByteStrings sh bs = Array (fromElt sh) (aux arrayElt bs)
     aux ArrayEltRculong         = wrap AD_CULong
     aux ArrayEltRcllong         = wrap AD_CLLong
     aux ArrayEltRcullong        = wrap AD_CULLong
+    aux ArrayEltRhalf           = wrap AD_Half
     aux ArrayEltRfloat          = wrap AD_Float
     aux ArrayEltRdouble         = wrap AD_Double
     aux ArrayEltRcfloat         = wrap AD_CFloat
@@ -129,6 +134,11 @@ fromByteStrings sh bs = Array (fromElt sh) (aux arrayElt bs)
     aux ArrayEltRcchar          = wrap AD_CChar
     aux ArrayEltRcschar         = wrap AD_CSChar
     aux ArrayEltRcuchar         = wrap AD_CUChar
+    aux (ArrayEltRvec2 ae)      = AD_V2 . aux ae
+    aux (ArrayEltRvec3 ae)      = AD_V3 . aux ae
+    aux (ArrayEltRvec4 ae)      = AD_V4 . aux ae
+    aux (ArrayEltRvec8 ae)      = AD_V8 . aux ae
+    aux (ArrayEltRvec16 ae)     = AD_V16 . aux ae
     aux (ArrayEltRpair ae1 ae2) = \(v1,v2) -> AD_Pair (aux ae1 v1) (aux ae2 v2)
 
 
@@ -171,6 +181,7 @@ toByteStrings (Array sh adata) = aux arrayElt adata
     aux ArrayEltRculong         (AD_CULong s)   = wrap s
     aux ArrayEltRcllong         (AD_CLLong s)   = wrap s
     aux ArrayEltRcullong        (AD_CULLong s)  = wrap s
+    aux ArrayEltRhalf           (AD_Half s)     = wrap s
     aux ArrayEltRfloat          (AD_Float s)    = wrap s
     aux ArrayEltRdouble         (AD_Double s)   = wrap s
     aux ArrayEltRcfloat         (AD_CFloat s)   = wrap s
@@ -180,6 +191,11 @@ toByteStrings (Array sh adata) = aux arrayElt adata
     aux ArrayEltRcchar          (AD_CChar s)    = wrap s
     aux ArrayEltRcschar         (AD_CSChar s)   = wrap s
     aux ArrayEltRcuchar         (AD_CUChar s)   = wrap s
+    aux (ArrayEltRvec2 ae)      (AD_V2 s)       = aux ae s
+    aux (ArrayEltRvec3 ae)      (AD_V3 s)       = aux ae s
+    aux (ArrayEltRvec4 ae)      (AD_V4 s)       = aux ae s
+    aux (ArrayEltRvec8 ae)      (AD_V8 s)       = aux ae s
+    aux (ArrayEltRvec16 ae)     (AD_V16 s)      = aux ae s
     aux (ArrayEltRpair ae1 ae2) (AD_Pair s1 s2) = (aux ae1 s1, aux ae2 s2)
 
 

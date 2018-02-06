@@ -31,7 +31,6 @@ import Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
 
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar                            as A hiding ( Vector )
-import Data.Array.Accelerate.Data.Complex
 import qualified Data.Array.Accelerate.Array.Representation         as R
 
 import Data.Int
@@ -236,6 +235,7 @@ instance (Unbox a, Unbox b, Unbox c, Unbox d, Unbox e, Unbox f) => Unbox (a, b, 
           (unboxedOfArrayData n e)
           (unboxedOfArrayData n f)
 
+{--
 #if MIN_VERSION_vector(0,12,0)
 instance Unbox a => Unbox (Complex a) where
 #else
@@ -245,6 +245,7 @@ instance (RealFloat a, Unbox a) => Unbox (Complex a) where
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Complex v2) = arrayDataOfUnboxed v2
   unboxedOfArrayData !n v2 = V_Complex (unboxedOfArrayData n v2)
+--}
 
 
 {--

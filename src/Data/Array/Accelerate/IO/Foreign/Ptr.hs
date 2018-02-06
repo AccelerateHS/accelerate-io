@@ -70,6 +70,7 @@ fromPtrs sh ps = Array (fromElt sh) (aux arrayElt ps)
     aux ArrayEltRculong         = wrap AD_CULong
     aux ArrayEltRcllong         = wrap AD_CLLong
     aux ArrayEltRcullong        = wrap AD_CULLong
+    aux ArrayEltRhalf           = wrap AD_Half
     aux ArrayEltRfloat          = wrap AD_Float
     aux ArrayEltRdouble         = wrap AD_Double
     aux ArrayEltRcfloat         = wrap AD_CFloat
@@ -79,6 +80,11 @@ fromPtrs sh ps = Array (fromElt sh) (aux arrayElt ps)
     aux ArrayEltRcchar          = wrap AD_CChar
     aux ArrayEltRcschar         = wrap AD_CSChar
     aux ArrayEltRcuchar         = wrap AD_CUChar
+    aux (ArrayEltRvec2 ae)      = AD_V2 . aux ae
+    aux (ArrayEltRvec3 ae)      = AD_V3 . aux ae
+    aux (ArrayEltRvec4 ae)      = AD_V4 . aux ae
+    aux (ArrayEltRvec8 ae)      = AD_V8 . aux ae
+    aux (ArrayEltRvec16 ae)     = AD_V16 . aux ae
     aux (ArrayEltRpair ae1 ae2) = \(v1,v2) -> AD_Pair (aux ae1 v1) (aux ae2 v2)
 
 

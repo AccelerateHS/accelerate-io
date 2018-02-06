@@ -63,11 +63,11 @@ fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr (offset 
     offset ix0 ix = toElt $ go (eltType (undefined::sh)) (fromElt ix0) (fromElt ix)
       where
         go :: TupleType ix -> ix -> ix -> ix
-        go UnitTuple                                                 ()       ()    = ()
-        go (PairTuple tl tr)                                         (l0, r0) (l,r) = (go tl l0 l, go tr r0 r)
-        go (SingleTuple (NumScalarType (IntegralNumType TypeInt{}))) i0       i     = i0+i
-        go _ _ _
-          = $internalError "fromIArray" "error in index offset"
+        go TypeRunit                                                                    ()       ()    = ()
+        go (TypeRpair tl tr)                                                            (l0, r0) (l,r) = (go tl l0 l, go tr r0 r)
+        go (TypeRscalar (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) i0       i     = i0+i
+        go _ _ _ =
+          $internalError "fromIArray" "error in index offset"
 
 
 -- | /O(n)/. Convert an Accelerate 'Array' to an 'IArray'.
@@ -99,9 +99,9 @@ toIArray mix0 arr = IArray.array bnds0 [(offset ix, arr ! toIxShapeRepr ix) | ix
       $ go (eltType (undefined::sh)) (fromElt (toIxShapeRepr ix0 :: sh)) (fromElt (toIxShapeRepr ix :: sh))
       where
         go :: TupleType sh' -> sh' -> sh' -> sh'
-        go UnitTuple                                                 ()       ()    = ()
-        go (PairTuple tl tr)                                         (l0,r0)  (l,r) = (go tl l0 l, go tr r0 r)
-        go (SingleTuple (NumScalarType (IntegralNumType TypeInt{}))) i0       i     = i0+i
-        go _ _ _
-          = $internalError "toIArray" "error in index offset"
+        go TypeRunit                                                                    ()       ()    = ()
+        go (TypeRpair tl tr)                                                            (l0,r0)  (l,r) = (go tl l0 l, go tr r0 r)
+        go (TypeRscalar (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) i0       i     = i0+i
+        go _ _ _ =
+          $internalError "toIArray" "error in index offset"
 

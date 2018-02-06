@@ -11,7 +11,7 @@ Policy (PVP)](https://pvp.haskell.org)
  * Split the different conversion functions into separate modules, rather than
    having a single `Data.Array.Accelerate.IO` export everything.
 
- * Conversion to/from `ByteString` is now non-copying and fix the type.
+ * Conversion to/from `ByteString` is now non-copying
 
 ## [1.0.0.1] - 2017-10-14
 ### Fixed

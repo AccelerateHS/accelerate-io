@@ -16,10 +16,8 @@ import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Lifetime
+import Data.Array.Accelerate.Type
 
-import Data.Int
-import Data.Word
-import Foreign.C.Types
 import Foreign.ForeignPtr
 import System.IO.Unsafe
 
@@ -48,6 +46,7 @@ type instance ForeignPtrs CLong   = ForeignPtr HTYPE_LONG
 type instance ForeignPtrs CULong  = ForeignPtr HTYPE_UNSIGNED_LONG
 type instance ForeignPtrs CLLong  = ForeignPtr Int64
 type instance ForeignPtrs CULLong = ForeignPtr Word64
+type instance ForeignPtrs Half    = ForeignPtr Half
 type instance ForeignPtrs Float   = ForeignPtr Float
 type instance ForeignPtrs Double  = ForeignPtr Double
 type instance ForeignPtrs CFloat  = ForeignPtr Float
@@ -57,6 +56,11 @@ type instance ForeignPtrs Char    = ForeignPtr Char
 type instance ForeignPtrs CChar   = ForeignPtr HTYPE_CCHAR
 type instance ForeignPtrs CSChar  = ForeignPtr Int8
 type instance ForeignPtrs CUChar  = ForeignPtr Word8
+type instance ForeignPtrs (V2 a)  = ForeignPtrs a
+type instance ForeignPtrs (V3 a)  = ForeignPtrs a
+type instance ForeignPtrs (V4 a)  = ForeignPtrs a
+type instance ForeignPtrs (V8 a)  = ForeignPtrs a
+type instance ForeignPtrs (V16 a) = ForeignPtrs a
 type instance ForeignPtrs (a,b)   = (ForeignPtrs a, ForeignPtrs b)
 
 
@@ -100,6 +104,7 @@ fromForeignPtrs sh fps = Array (fromElt sh) (aux arrayElt fps)
     aux ArrayEltRculong         = wrap AD_CULong
     aux ArrayEltRcllong         = wrap AD_CLLong
     aux ArrayEltRcullong        = wrap AD_CULLong
+    aux ArrayEltRhalf           = wrap AD_Half
     aux ArrayEltRfloat          = wrap AD_Float
     aux ArrayEltRdouble         = wrap AD_Double
     aux ArrayEltRcfloat         = wrap AD_CFloat
@@ -109,6 +114,11 @@ fromForeignPtrs sh fps = Array (fromElt sh) (aux arrayElt fps)
     aux ArrayEltRcchar          = wrap AD_CChar
     aux ArrayEltRcschar         = wrap AD_CSChar
     aux ArrayEltRcuchar         = wrap AD_CUChar
+    aux (ArrayEltRvec2 ae)      = AD_V2 . aux ae
+    aux (ArrayEltRvec3 ae)      = AD_V3 . aux ae
+    aux (ArrayEltRvec4 ae)      = AD_V4 . aux ae
+    aux (ArrayEltRvec8 ae)      = AD_V8 . aux ae
+    aux (ArrayEltRvec16 ae)     = AD_V16 . aux ae
     aux (ArrayEltRpair ae1 ae2) = \(v1,v2) -> AD_Pair (aux ae1 v1) (aux ae2 v2)
 
 
@@ -146,6 +156,7 @@ toForeignPtrs (Array _ adata) = aux arrayElt adata
     aux ArrayEltRculong         (AD_CULong s)   = wrap s
     aux ArrayEltRcllong         (AD_CLLong s)   = wrap s
     aux ArrayEltRcullong        (AD_CULLong s)  = wrap s
+    aux ArrayEltRhalf           (AD_Half s)     = wrap s
     aux ArrayEltRfloat          (AD_Float s)    = wrap s
     aux ArrayEltRdouble         (AD_Double s)   = wrap s
     aux ArrayEltRcfloat         (AD_CFloat s)   = wrap s
@@ -155,5 +166,10 @@ toForeignPtrs (Array _ adata) = aux arrayElt adata
     aux ArrayEltRcchar          (AD_CChar s)    = wrap s
     aux ArrayEltRcschar         (AD_CSChar s)   = wrap s
     aux ArrayEltRcuchar         (AD_CUChar s)   = wrap s
+    aux (ArrayEltRvec2 ae)      (AD_V2 s)       = aux ae s
+    aux (ArrayEltRvec3 ae)      (AD_V3 s)       = aux ae s
+    aux (ArrayEltRvec4 ae)      (AD_V4 s)       = aux ae s
+    aux (ArrayEltRvec8 ae)      (AD_V8 s)       = aux ae s
+    aux (ArrayEltRvec16 ae)     (AD_V16 s)      = aux ae s
     aux (ArrayEltRpair ae1 ae2) (AD_Pair s1 s2) = (aux ae1 s1, aux ae2 s2)
 

@@ -20,6 +20,7 @@ import Test.Tasty.Hedgehog
 
 import Data.Array.Accelerate                                        ( Shape, Elt, Z(..), (:.)(..) )
 import Data.Array.Accelerate.Array.Sugar                            ( rank, EltRepr )
+import Data.Array.Accelerate.Data.Complex
 import Data.Array.Accelerate.IO.Data.Vector.Storable                as A
 import qualified Data.Array.Accelerate                              as A
 
@@ -98,6 +99,34 @@ test_a2s_t2 dim e =
     A.toList arr === P.zip (S.toList va) (S.toList vb)
 
 
+test_s2a_complex
+    :: forall e. ( Storable e, Elt (Complex e), Eq e
+                 , Vectors (EltRepr (Complex e)) ~ Vector e
+                 )
+    => Gen (Complex e)
+    -> Property
+test_s2a_complex e =
+  property $ do
+    sh@(Z :. n) <- forAll dim1
+    svec        <- forAll (storable n e)
+    --
+    S.toList svec === A.toList (A.fromVectors sh (S.unsafeCast svec :: S.Vector e))
+
+test_a2s_complex
+    :: forall sh e. ( Shape sh, Storable e, Elt (Complex e), Eq sh, Eq e
+                    , Vectors (EltRepr (Complex e)) ~ Vector e
+                    )
+    => Gen sh
+    -> Gen (Complex e)
+    -> Property
+test_a2s_complex dim e =
+  property $ do
+    sh  <- forAll dim
+    arr <- forAll (array sh e)
+    --
+    A.toList arr === S.toList (S.unsafeCast (A.toVectors arr) :: S.Vector (Complex e))
+
+
 test_a2s_dim
     :: forall sh. (Shape sh, Eq sh)
     => Gen sh
@@ -118,7 +147,7 @@ test_a2s_dim dim =
     -- , testProperty "Bool"                   $ test_a2s dim Gen.bool
     , testProperty "Float"                  $ test_a2s dim f32
     , testProperty "Double"                 $ test_a2s dim f64
-    -- , testProperty "Complex Float"          $ test_a2s_t2 dim (complex f32)
+    , testProperty "Complex Float"          $ test_a2s_complex dim (complex f32)
     , testProperty "(Double, Int16)"        $ test_a2s_t2 dim ((,) <$> f64 <*> i16)
     , testProperty "(Float, Float)"         $ test_a2s_t2 dim ((,) <$> f32 <*> f32)
     -- , testProperty "(Float, (Double,Int))"  $ test_a2s dim ((,) <$> f32 <*> ((,) <$> f64 <*> int))
@@ -128,22 +157,23 @@ test_vector_storable :: TestTree
 test_vector_storable =
   testGroup "Data.Vector.Storable"
     [ testGroup "storable->accelerate"
-      [ testProperty "Int"         $ test_s2a int
-      , testProperty "Int8"        $ test_s2a i8
-      , testProperty "Int16"       $ test_s2a i16
-      , testProperty "Int32"       $ test_s2a i32
-      , testProperty "Int64"       $ test_s2a i64
-      , testProperty "Word"        $ test_s2a word
-      , testProperty "Word8"       $ test_s2a w8
-      , testProperty "Word16"      $ test_s2a w16
-      , testProperty "Word32"      $ test_s2a w32
-      , testProperty "Word64"      $ test_s2a w64
-      , testProperty "Char"        $ test_s2a Gen.unicode
-      , testProperty "Bool"        $ test_s2a (boolToWord8 <$> Gen.bool)
-      , testProperty "Float"       $ test_s2a f32
-      , testProperty "Double"      $ test_s2a f64
-      , testProperty "(Int,Float)" $ test_s2a_t2 int f32
-      , testProperty "(Int8,Word)" $ test_s2a_t2 i8 word
+      [ testProperty "Int"            $ test_s2a int
+      , testProperty "Int8"           $ test_s2a i8
+      , testProperty "Int16"          $ test_s2a i16
+      , testProperty "Int32"          $ test_s2a i32
+      , testProperty "Int64"          $ test_s2a i64
+      , testProperty "Word"           $ test_s2a word
+      , testProperty "Word8"          $ test_s2a w8
+      , testProperty "Word16"         $ test_s2a w16
+      , testProperty "Word32"         $ test_s2a w32
+      , testProperty "Word64"         $ test_s2a w64
+      , testProperty "Char"           $ test_s2a Gen.unicode
+      , testProperty "Bool"           $ test_s2a (boolToWord8 <$> Gen.bool)
+      , testProperty "Float"          $ test_s2a f32
+      , testProperty "Double"         $ test_s2a f64
+      , testProperty "Complex Float"  $ test_s2a_complex (complex f32)
+      , testProperty "(Int,Float)"    $ test_s2a_t2 int f32
+      , testProperty "(Int8,Word)"    $ test_s2a_t2 i8 word
       ]
     , testGroup"accelerate->storable"
       [ test_a2s_dim dim0

@@ -120,11 +120,11 @@ toUArray mix0 arr@(Array sh adata) =
     offset' ix0 = toElt . go (eltType (undefined::sh)) (fromElt (toIxShapeRepr ix0 :: sh)) . fromElt
       where
         go :: TupleType sh' -> sh' -> sh' -> sh'
-        go UnitTuple                                                 ()       ()    = ()
-        go (PairTuple tl tr)                                         (l0, r0) (l,r) = (go tl l0 l, go tr r0 r)
-        go (SingleTuple (NumScalarType (IntegralNumType TypeInt{}))) i0       i     = i0+i
-        go _ _ _
-          = $internalError "toUArray" "error in index offset"
+        go TypeRunit                                                                    ()       ()    = ()
+        go (TypeRpair tl tr)                                                            (l0, r0) (l,r) = (go tl l0 l, go tr r0 r)
+        go (TypeRscalar (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) i0       i     = i0+i
+        go _ _ _ =
+          $internalError "toUArray" "error in index offset"
 
     wrap :: forall a. Prim a => UniqueArray a -> ByteArray
     wrap ua = unsafePerformIO $ byteArrayOfForeignPtr (n * sizeOf (undefined::a)) (unsafeGetValue (uniqueArrayData ua))

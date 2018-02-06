@@ -7,7 +7,9 @@ packages:
 - '.'
 
 extra-deps:
-- 'accelerate-1.1.1.0'
+- git:    https://github.com/tmcdonell/accelerate.git
+  commit: 2a19ab7e892c2fed3c9e29145e5c616b9be3444a
+
 - 'cabal-doctest-1.0.2'
 - 'hedgehog-0.5'
 - 'tasty-hedgehog-0.1.0.1'

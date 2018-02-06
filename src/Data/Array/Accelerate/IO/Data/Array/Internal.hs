@@ -28,17 +28,19 @@ fromIxShapeRepr :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape s
 fromIxShapeRepr sh = toElt (go (eltType (undefined::ix)) (fromElt sh))
   where
     go :: forall ix'. TupleType ix' -> IxShapeRepr ix' -> ix'
-    go UnitTuple ()                                                         = ()
-    go (SingleTuple     (NumScalarType (IntegralNumType TypeInt{}))) ((),h) = h
-    go (PairTuple tt _) (t, h)                                              = (go tt t, h)
-    go _ _ = $internalError "fromIxShapeRepr" "not a valid IArray.Ix"
+    go TypeRunit                                                                    ()     = ()
+    go (TypeRpair tt _)                                                             (t, h) = (go tt t, h)
+    go (TypeRscalar (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) ((),h) = h
+    go _ _ =
+      $internalError "fromIxShapeRepr" "not a valid IArray.Ix"
 
 toIxShapeRepr :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix) => ix -> sh
 toIxShapeRepr ix = toElt (go (eltType (undefined::ix)) (fromElt ix))
   where
     go :: forall ix'. TupleType ix' -> ix' -> IxShapeRepr ix'
-    go UnitTuple        ()                                             = ()
-    go (SingleTuple     (NumScalarType (IntegralNumType TypeInt{}))) h = ((), h)
-    go (PairTuple tt _) (t, h)                                         = (go tt t, h)
-    go _ _ = $internalError "toIxShapeRepr" "not a valid IArray.Ix"
+    go TypeRunit                                                                    ()     = ()
+    go (TypeRpair tt _)                                                             (t, h) = (go tt t, h)
+    go (TypeRscalar (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) h      = ((),h)
+    go _ _ =
+      $internalError "toIxShapeRepr" "not a valid IArray.Ix"
 

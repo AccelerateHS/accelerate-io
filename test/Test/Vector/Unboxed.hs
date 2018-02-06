@@ -77,7 +77,7 @@ test_a2u_dim dim =
     , testProperty "Bool"                   $ test_a2u dim Gen.bool
     , testProperty "Float"                  $ test_a2u dim f32
     , testProperty "Double"                 $ test_a2u dim f64
-    , testProperty "Complex Float"          $ test_a2u dim (complex f32)
+    -- , testProperty "Complex Float"          $ test_a2u dim (complex f32)
     , testProperty "(Double, Int16)"        $ test_a2u dim ((,) <$> f64 <*> i16)
     , testProperty "(Float, (Double,Int))"  $ test_a2u dim ((,) <$> f32 <*> ((,) <$> f64 <*> int))
     ]
@@ -100,7 +100,7 @@ test_vector_unboxed =
       , testProperty "Bool"                 $ test_u2a Gen.bool
       , testProperty "Float"                $ test_u2a f32
       , testProperty "Double"               $ test_u2a f64
-      , testProperty "Complex Float"        $ test_u2a (complex f32)
+      -- , testProperty "Complex Float"        $ test_u2a (complex f32)
       , testProperty "(Int,Float)"          $ test_u2a ((,) <$> int <*> f32)
       , testProperty "((Int8,Word),Double)" $ test_u2a ((,) <$> ((,) <$> i8 <*> word) <*> f64)
       ]
