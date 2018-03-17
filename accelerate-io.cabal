@@ -90,7 +90,7 @@ test-suite test-io
   ghc-options:          -main-is Test
 
   build-depends:
-        base                    >= 4.7  && < 4.11
+        base                    >= 4.7  && < 4.12
       , accelerate
       , accelerate-io
       , array
