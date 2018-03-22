@@ -9,9 +9,16 @@ Policy (PVP)](https://pvp.haskell.org)
 ## [next]
 ### Changed
  * Split the different conversion functions into separate modules, rather than
-   having a single `Data.Array.Accelerate.IO` export everything.
+   having a single `Data.Array.Accelerate.IO` module which export everything.
 
  * Conversion to/from `ByteString` is now non-copying
+
+### Added
+ * Conversions between `Data.Vector.Unboxed`
+ * Instances for `Data.Vector.Generic`
+
+### Fixed
+ * Image created by `writeImageToBMP` flipped vertically ([#289])
 
 ## [1.0.0.1] - 2017-10-14
 ### Fixed
@@ -25,4 +32,7 @@ Policy (PVP)](https://pvp.haskell.org)
 [next]:       https://github.com/AccelerateHS/accelerate-io/compare/1.0.0.1...HEAD
 [1.0.0.1]:    https://github.com/AccelerateHS/accelerate-io/compare/1.0.0.0...1.0.0.1
 [1.0.0.0]:    https://github.com/AccelerateHS/accelerate-io/compare/0.15.1.0...1.0.0.0
+
+
+[#289]:       https://github.com/AccelerateHS/accelerate/issues/289
 
