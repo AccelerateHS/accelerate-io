@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -165,9 +166,9 @@ instance Elt e => V.MVector MVector e where
       between :: Int -> Int -> Int -> Bool
       between x y z = x >= y && x < z
 
-  basicUnsafeNew n = unsafeIOToPrim $ MArray ((),n) <$> newArrayData n
+  basicUnsafeNew n = unsafePrimToPrim $ MArray ((),n) <$> newArrayData n
 
-  basicInitialize (MArray ((),n) mad) = unsafeIOToPrim $ go (arrayElt :: ArrayEltR (EltRepr e)) (ptrsOfArrayData mad) 1
+  basicInitialize (MArray ((),n) mad) = unsafePrimToPrim $ go (arrayElt :: ArrayEltR (EltRepr e)) (ptrsOfArrayData mad) 1
     where
       go :: ArrayEltR a -> ArrayPtrs a -> Int -> IO ()
       go ArrayEltRunit       () !_ = return ()
@@ -209,10 +210,10 @@ instance Elt e => V.MVector MVector e where
       initialise :: forall a. Storable a => Ptr a -> Int -> IO ()
       initialise p s = fillBytes p 0 (n * s * sizeOf (undefined::a))
 
-  basicUnsafeRead  (MArray _ mad) i   = unsafeIOToPrim $ toElt <$> unsafeReadArrayData mad i
-  basicUnsafeWrite (MArray _ mad) i v = unsafeIOToPrim $ unsafeWriteArrayData mad i (fromElt v)
+  basicUnsafeRead  (MArray _ mad) i   = unsafePrimToPrim $ toElt <$> unsafeReadArrayData mad i
+  basicUnsafeWrite (MArray _ mad) i v = unsafePrimToPrim $ unsafeWriteArrayData mad i (fromElt v)
 
-  basicUnsafeCopy (MArray _ dst) (MArray ((),n) src) = unsafeIOToPrim $ go (arrayElt :: ArrayEltR (EltRepr e)) (ptrsOfArrayData dst) (ptrsOfArrayData src) 1
+  basicUnsafeCopy (MArray _ dst) (MArray ((),n) src) = unsafePrimToPrim $ go (arrayElt :: ArrayEltR (EltRepr e)) (ptrsOfArrayData dst) (ptrsOfArrayData src) 1
     where
       go :: ArrayEltR a -> ArrayPtrs a -> ArrayPtrs a -> Int -> IO ()
       go ArrayEltRunit       () () !_ = return ()
@@ -253,4 +254,10 @@ instance Elt e => V.MVector MVector e where
 
       copy :: forall a. Storable a => Ptr a -> Ptr a -> Int -> IO ()
       copy u v s = copyBytes u v (n * s * sizeOf (undefined::a))
+
+
+#if !MIN_VERSION_base(4,10,0)
+plusForeignPtr :: ForeignPtr a -> Int -> ForeignPtr b
+plusForeignPtr (ForeignPtr addr# c) (I# i#) = ForeignPtr (plusAddr# addr# i#) c
+#endif
 
