@@ -51,6 +51,7 @@ library
         Data.Array.Accelerate.IO.Data.Vector.Primitive
         Data.Array.Accelerate.IO.Data.Vector.Storable
         Data.Array.Accelerate.IO.Data.Vector.Unboxed
+        Data.Array.Accelerate.IO.Data.Vector.Generic.Mutable
 
         -- array
         Data.Array.Accelerate.IO.Data.Array.IArray
