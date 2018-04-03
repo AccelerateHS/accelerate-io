@@ -1,14 +1,13 @@
 # For more information, see: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 # vim: nospell
 
-resolver: lts-11.0
+resolver: lts-11.2
 
 packages:
 - '.'
 
 extra-deps:
-- git:    https://github.com/tmcdonell/accelerate.git
-  commit: 75879be1bdc4795d51f17ff22fe481a018f86c1b
+- 'accelerate-1.2.0.0'
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
