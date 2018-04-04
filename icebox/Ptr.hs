@@ -57,11 +57,11 @@ toPtr arr blockPtrs = do
 -- | Copy values from an Accelerate array using a collection of functions that
 --   have type 'BlockCopyFun'. The argument of type @Ptr e@ in each of these
 --   functions refers to the address of the /source/ block of memory in the
---   Accelerate Array. The /destination/ address is implicit. e.g. the
+--   Accelerate Array. The /destination/ address is implicit; e.g. the
 --   'BlockCopyFun' could be the result of partially application to a @Ptr e@
 --   pointing to the destination block.
 --
---   The structure of this collection of functions depends on the elemente type
+--   The structure of this collection of functions depends on the element type
 --   @e@. Each function (of type 'BlockCopyFun') copies data to a destination
 --   address (pointed to by the argument of type @Ptr ()@).
 --
@@ -79,7 +79,7 @@ fromArray arr blockCopyFuns = do
 -- | Copy values to a freshly allocated Accelerate array using a collection of
 --   functions that have type 'BlockCopyFun'. The argument of type @Ptr e@ in
 --   each of these functions refers to the address of the /destination/ block of
---   memory in the Accelerate Array. The /source/ address is implicit. e.g. the
+--   memory in the Accelerate Array. The /source/ address is implicit; e.g. the
 --   'BlockCopyFun' could be the result of a partial application to a @Ptr e@
 --   pointing to the source block.
 --

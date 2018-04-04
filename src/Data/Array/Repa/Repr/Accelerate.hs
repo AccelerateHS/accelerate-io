@@ -9,7 +9,7 @@
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 -- |
--- Module      : Data.Array.Accelerate.IO.Repa
+-- Module      : Data.Array.Repa.Repr.Accelerate
 -- Copyright   : [2012..2014] Trevor L. McDonell
 -- License     : BSD3
 --
@@ -17,22 +17,21 @@
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
+-- This provides an efficient non-copying Repa manifest array representation
+-- that can be passed directly to Accelerate.
+--
+-- The standard rules for dealing with manifest Repa arrays apply:
+--
+--  * If you want to have Repa 'R.computeP' directly into an Accelerate array,
+--    the source array must have a delayed representation.
+--
+--  * If you want to copy between manifest arrays, use 'R.copyP' instead.
+--
 
-module Data.Array.Accelerate.IO.Repa (
+module Data.Array.Repa.Repr.Accelerate (
 
-  -- ** Data.Array.Repa
-  --
-  -- | This provides an efficient non-copying Repa manifest array representation
-  -- that can be passed directly to Accelerate.
-  --
-  -- The standard rules for dealing with manifest Repa arrays apply:
-  --
-  --  * If you want to have Repa 'R.computeP' directly into an Accelerate array,
-  --    the source array must have a delayed representation.
-  --
-  --  * If you want to copy between manifest arrays, use 'R.copyP' instead.
-  --
   A, Shapes,
+
   fromRepa, toRepa,
   computeAccS, computeAccP
 
