@@ -37,8 +37,7 @@ import Data.Int
 import Data.Word
 
 
--- | /O(n)/ (typically). Convert an Unboxed vector into an Accelerate array
--- Accelerate array.
+-- | /O(n)/ (typically). Convert an Unboxed vector into an Accelerate array.
 --
 -- If the underlying vectors are pinned then this can be done without copying.
 --
