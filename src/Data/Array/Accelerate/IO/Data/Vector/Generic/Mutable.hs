@@ -26,10 +26,11 @@
 module Data.Array.Accelerate.IO.Data.Vector.Generic.Mutable
   where
 
-import Data.Array.Accelerate.Array.Data                             as A
-import Data.Array.Accelerate.Array.Sugar                            as A
-import Data.Array.Accelerate.Array.Unique                           as A
+import Data.Array.Accelerate.Array.Data
+import Data.Array.Accelerate.Array.Sugar
+import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Lifetime
+import Data.Array.Accelerate.Type
 
 import qualified Data.Vector.Generic.Mutable                        as V
 
@@ -41,6 +42,7 @@ import Foreign.Storable
 import Prelude                                                      hiding ( length )
 
 import GHC.Base
+import GHC.TypeLits
 import GHC.ForeignPtr
 
 
@@ -81,29 +83,12 @@ instance Elt e => V.MVector MVector e where
       go ArrayEltRword16         (AD_Word16 v)   !s = AD_Word16  (slice v s)
       go ArrayEltRword32         (AD_Word32 v)   !s = AD_Word32  (slice v s)
       go ArrayEltRword64         (AD_Word64 v)   !s = AD_Word64  (slice v s)
-      go ArrayEltRcshort         (AD_CShort v)   !s = AD_CShort  (slice v s)
-      go ArrayEltRcushort        (AD_CUShort v)  !s = AD_CUShort (slice v s)
-      go ArrayEltRcint           (AD_CInt v)     !s = AD_CInt    (slice v s)
-      go ArrayEltRcuint          (AD_CUInt v)    !s = AD_CUInt   (slice v s)
-      go ArrayEltRclong          (AD_CLong v)    !s = AD_CLong   (slice v s)
-      go ArrayEltRculong         (AD_CULong v)   !s = AD_CULong  (slice v s)
-      go ArrayEltRcllong         (AD_CLLong v)   !s = AD_CLLong  (slice v s)
-      go ArrayEltRcullong        (AD_CULLong v)  !s = AD_CULLong (slice v s)
       go ArrayEltRhalf           (AD_Half v)     !s = AD_Half    (slice v s)
       go ArrayEltRfloat          (AD_Float v)    !s = AD_Float   (slice v s)
       go ArrayEltRdouble         (AD_Double v)   !s = AD_Double  (slice v s)
-      go ArrayEltRcfloat         (AD_CFloat v)   !s = AD_CFloat  (slice v s)
-      go ArrayEltRcdouble        (AD_CDouble v)  !s = AD_CDouble (slice v s)
       go ArrayEltRbool           (AD_Bool v)     !s = AD_Bool    (slice v s)
       go ArrayEltRchar           (AD_Char v)     !s = AD_Char    (slice v s)
-      go ArrayEltRcchar          (AD_CChar v)    !s = AD_CChar   (slice v s)
-      go ArrayEltRcschar         (AD_CSChar v)   !s = AD_CSChar  (slice v s)
-      go ArrayEltRcuchar         (AD_CUChar v)   !s = AD_CUChar  (slice v s)
-      go (ArrayEltRvec2 ae)      (AD_V2 v)       !s = AD_V2   (go ae v (s*2))
-      go (ArrayEltRvec3 ae)      (AD_V3 v)       !s = AD_V3   (go ae v (s*3))
-      go (ArrayEltRvec4 ae)      (AD_V4 v)       !s = AD_V4   (go ae v (s*4))
-      go (ArrayEltRvec8 ae)      (AD_V8 v)       !s = AD_V8   (go ae v (s*8))
-      go (ArrayEltRvec16 ae)     (AD_V16 v)      !s = AD_V16  (go ae v (s*16))
+      go (ArrayEltRvec ae)       (AD_Vec n# v)   !s = AD_Vec n# (go ae v (I# n# * s))
       go (ArrayEltRpair ae1 ae2) (AD_Pair v1 v2) !s = AD_Pair (go ae1 v1 s) (go ae2 v2 s)
 
       slice :: forall a. Storable a => UniqueArray a -> Int -> UniqueArray a
@@ -124,29 +109,12 @@ instance Elt e => V.MVector MVector e where
       go ArrayEltRword16         (AD_Word16 v1)    (AD_Word16 v2)    !s = overlaps v1 v2 s
       go ArrayEltRword32         (AD_Word32 v1)    (AD_Word32 v2)    !s = overlaps v1 v2 s
       go ArrayEltRword64         (AD_Word64 v1)    (AD_Word64 v2)    !s = overlaps v1 v2 s
-      go ArrayEltRcshort         (AD_CShort v1)    (AD_CShort v2)    !s = overlaps v1 v2 s
-      go ArrayEltRcushort        (AD_CUShort v1)   (AD_CUShort v2)   !s = overlaps v1 v2 s
-      go ArrayEltRcint           (AD_CInt v1)      (AD_CInt v2)      !s = overlaps v1 v2 s
-      go ArrayEltRcuint          (AD_CUInt v1)     (AD_CUInt v2)     !s = overlaps v1 v2 s
-      go ArrayEltRclong          (AD_CLong v1)     (AD_CLong v2)     !s = overlaps v1 v2 s
-      go ArrayEltRculong         (AD_CULong v1)    (AD_CULong v2)    !s = overlaps v1 v2 s
-      go ArrayEltRcllong         (AD_CLLong v1)    (AD_CLLong v2)    !s = overlaps v1 v2 s
-      go ArrayEltRcullong        (AD_CULLong v1)   (AD_CULLong v2)   !s = overlaps v1 v2 s
       go ArrayEltRhalf           (AD_Half v1)      (AD_Half v2)      !s = overlaps v1 v2 s
       go ArrayEltRfloat          (AD_Float v1)     (AD_Float v2)     !s = overlaps v1 v2 s
       go ArrayEltRdouble         (AD_Double v1)    (AD_Double v2)    !s = overlaps v1 v2 s
-      go ArrayEltRcfloat         (AD_CFloat v1)    (AD_CFloat v2)    !s = overlaps v1 v2 s
-      go ArrayEltRcdouble        (AD_CDouble v1)   (AD_CDouble v2)   !s = overlaps v1 v2 s
       go ArrayEltRbool           (AD_Bool v1)      (AD_Bool v2)      !s = overlaps v1 v2 s
       go ArrayEltRchar           (AD_Char v1)      (AD_Char v2)      !s = overlaps v1 v2 s
-      go ArrayEltRcchar          (AD_CChar v1)     (AD_CChar v2)     !s = overlaps v1 v2 s
-      go ArrayEltRcschar         (AD_CSChar v1)    (AD_CSChar v2)    !s = overlaps v1 v2 s
-      go ArrayEltRcuchar         (AD_CUChar v1)    (AD_CUChar v2)    !s = overlaps v1 v2 s
-      go (ArrayEltRvec2 ae)      (AD_V2 v1)        (AD_V2 v2)        !s = go ae v1 v2 (s*2)
-      go (ArrayEltRvec3 ae)      (AD_V3 v1)        (AD_V3 v3)        !s = go ae v1 v3 (s*3)
-      go (ArrayEltRvec4 ae)      (AD_V4 v1)        (AD_V4 v4)        !s = go ae v1 v4 (s*4)
-      go (ArrayEltRvec8 ae)      (AD_V8 v1)        (AD_V8 v8)        !s = go ae v1 v8 (s*8)
-      go (ArrayEltRvec16 ae)     (AD_V16 v1)       (AD_V16 v16)      !s = go ae v1 v16 (s*16)
+      go (ArrayEltRvec ae)       (AD_Vec n# v1)    (AD_Vec _ v2)     !s = go ae v1 v2 (I# n# * s)
       go (ArrayEltRpair ae1 ae2) (AD_Pair v11 v12) (AD_Pair v21 v22) !s = go ae1 v11 v21 s || go ae2 v12 v22 s
 
       overlaps :: forall a. Storable a => UniqueArray a -> UniqueArray a -> Int -> Bool
@@ -171,41 +139,27 @@ instance Elt e => V.MVector MVector e where
   basicInitialize (MArray ((),n) mad) = unsafePrimToPrim $ go (arrayElt :: ArrayEltR (EltRepr e)) (ptrsOfArrayData mad) 1
     where
       go :: ArrayEltR a -> ArrayPtrs a -> Int -> IO ()
-      go ArrayEltRunit       () !_ = return ()
-      go ArrayEltRint        p  !s = initialise p s
-      go ArrayEltRint8       p  !s = initialise p s
-      go ArrayEltRint16      p  !s = initialise p s
-      go ArrayEltRint32      p  !s = initialise p s
-      go ArrayEltRint64      p  !s = initialise p s
-      go ArrayEltRword       p  !s = initialise p s
-      go ArrayEltRword8      p  !s = initialise p s
-      go ArrayEltRword16     p  !s = initialise p s
-      go ArrayEltRword32     p  !s = initialise p s
-      go ArrayEltRword64     p  !s = initialise p s
-      go ArrayEltRcshort     p  !s = initialise p s
-      go ArrayEltRcushort    p  !s = initialise p s
-      go ArrayEltRcint       p  !s = initialise p s
-      go ArrayEltRcuint      p  !s = initialise p s
-      go ArrayEltRclong      p  !s = initialise p s
-      go ArrayEltRculong     p  !s = initialise p s
-      go ArrayEltRcllong     p  !s = initialise p s
-      go ArrayEltRcullong    p  !s = initialise p s
-      go ArrayEltRhalf       p  !s = initialise p s
-      go ArrayEltRfloat      p  !s = initialise p s
-      go ArrayEltRdouble     p  !s = initialise p s
-      go ArrayEltRcfloat     p  !s = initialise p s
-      go ArrayEltRcdouble    p  !s = initialise p s
-      go ArrayEltRbool       p  !s = initialise p s
-      go ArrayEltRchar       p  !s = initialise p s
-      go ArrayEltRcchar      p  !s = initialise p s
-      go ArrayEltRcschar     p  !s = initialise p s
-      go ArrayEltRcuchar     p  !s = initialise p s
-      go (ArrayEltRvec2 ae)  p  !s = go ae p (s*2)
-      go (ArrayEltRvec3 ae)  p  !s = go ae p (s*3)
-      go (ArrayEltRvec4 ae)  p  !s = go ae p (s*4)
-      go (ArrayEltRvec8 ae)  p  !s = go ae p (s*8)
-      go (ArrayEltRvec16 ae) p  !s = go ae p (s*16)
-      go (ArrayEltRpair ae1 ae2) (p1,p2) s = go ae1 p1 s >> go ae2 p2 s
+      go ArrayEltRunit           () !_ = return ()
+      go ArrayEltRint            p  !s = initialise p s
+      go ArrayEltRint8           p  !s = initialise p s
+      go ArrayEltRint16          p  !s = initialise p s
+      go ArrayEltRint32          p  !s = initialise p s
+      go ArrayEltRint64          p  !s = initialise p s
+      go ArrayEltRword           p  !s = initialise p s
+      go ArrayEltRword8          p  !s = initialise p s
+      go ArrayEltRword16         p  !s = initialise p s
+      go ArrayEltRword32         p  !s = initialise p s
+      go ArrayEltRword64         p  !s = initialise p s
+      go ArrayEltRhalf           p  !s = initialise p s
+      go ArrayEltRfloat          p  !s = initialise p s
+      go ArrayEltRdouble         p  !s = initialise p s
+      go ArrayEltRbool           p  !s = initialise p s
+      go ArrayEltRchar           p  !s = initialise p s
+      go aeR@(ArrayEltRvec ae)   p  !s = go ae p (s * width aeR)
+      go (ArrayEltRpair ae1 ae2) (p1,p2) !s = go ae1 p1 s >> go ae2 p2 s
+
+      width :: forall n a. KnownNat n => ArrayEltR (Vec n a) -> Int
+      width _ = fromInteger (natVal' (proxy# :: Proxy# n))
 
       initialise :: forall a. Storable a => Ptr a -> Int -> IO ()
       initialise p s = fillBytes p 0 (n * s * sizeOf (undefined::a))
@@ -216,41 +170,27 @@ instance Elt e => V.MVector MVector e where
   basicUnsafeCopy (MArray _ dst) (MArray ((),n) src) = unsafePrimToPrim $ go (arrayElt :: ArrayEltR (EltRepr e)) (ptrsOfArrayData dst) (ptrsOfArrayData src) 1
     where
       go :: ArrayEltR a -> ArrayPtrs a -> ArrayPtrs a -> Int -> IO ()
-      go ArrayEltRunit       () () !_ = return ()
-      go ArrayEltRint        u  v  !s = copy u v s
-      go ArrayEltRint8       u  v  !s = copy u v s
-      go ArrayEltRint16      u  v  !s = copy u v s
-      go ArrayEltRint32      u  v  !s = copy u v s
-      go ArrayEltRint64      u  v  !s = copy u v s
-      go ArrayEltRword       u  v  !s = copy u v s
-      go ArrayEltRword8      u  v  !s = copy u v s
-      go ArrayEltRword16     u  v  !s = copy u v s
-      go ArrayEltRword32     u  v  !s = copy u v s
-      go ArrayEltRword64     u  v  !s = copy u v s
-      go ArrayEltRcshort     u  v  !s = copy u v s
-      go ArrayEltRcushort    u  v  !s = copy u v s
-      go ArrayEltRcint       u  v  !s = copy u v s
-      go ArrayEltRcuint      u  v  !s = copy u v s
-      go ArrayEltRclong      u  v  !s = copy u v s
-      go ArrayEltRculong     u  v  !s = copy u v s
-      go ArrayEltRcllong     u  v  !s = copy u v s
-      go ArrayEltRcullong    u  v  !s = copy u v s
-      go ArrayEltRhalf       u  v  !s = copy u v s
-      go ArrayEltRfloat      u  v  !s = copy u v s
-      go ArrayEltRdouble     u  v  !s = copy u v s
-      go ArrayEltRcfloat     u  v  !s = copy u v s
-      go ArrayEltRcdouble    u  v  !s = copy u v s
-      go ArrayEltRbool       u  v  !s = copy u v s
-      go ArrayEltRchar       u  v  !s = copy u v s
-      go ArrayEltRcchar      u  v  !s = copy u v s
-      go ArrayEltRcschar     u  v  !s = copy u v s
-      go ArrayEltRcuchar     u  v  !s = copy u v s
-      go (ArrayEltRvec2 ae)  u  v  !s = go ae u v (s*2)
-      go (ArrayEltRvec3 ae)  u  v  !s = go ae u v (s*3)
-      go (ArrayEltRvec4 ae)  u  v  !s = go ae u v (s*4)
-      go (ArrayEltRvec8 ae)  u  v  !s = go ae u v (s*8)
-      go (ArrayEltRvec16 ae) u  v  !s = go ae u v (s*16)
-      go (ArrayEltRpair ae1 ae2) (u1,u2) (v1,v2) s = go ae1 u1 v1 s >> go ae2 u2 v2 s
+      go ArrayEltRunit           () () !_ = return ()
+      go ArrayEltRint            u  v  !s = copy u v s
+      go ArrayEltRint8           u  v  !s = copy u v s
+      go ArrayEltRint16          u  v  !s = copy u v s
+      go ArrayEltRint32          u  v  !s = copy u v s
+      go ArrayEltRint64          u  v  !s = copy u v s
+      go ArrayEltRword           u  v  !s = copy u v s
+      go ArrayEltRword8          u  v  !s = copy u v s
+      go ArrayEltRword16         u  v  !s = copy u v s
+      go ArrayEltRword32         u  v  !s = copy u v s
+      go ArrayEltRword64         u  v  !s = copy u v s
+      go ArrayEltRhalf           u  v  !s = copy u v s
+      go ArrayEltRfloat          u  v  !s = copy u v s
+      go ArrayEltRdouble         u  v  !s = copy u v s
+      go ArrayEltRbool           u  v  !s = copy u v s
+      go ArrayEltRchar           u  v  !s = copy u v s
+      go aeR@(ArrayEltRvec ae)   u  v  !s = go ae u v (s * width aeR)
+      go (ArrayEltRpair ae1 ae2) (u1,u2) (v1,v2) !s = go ae1 u1 v1 s >> go ae2 u2 v2 s
+
+      width :: forall n a. KnownNat n => ArrayEltR (Vec n a) -> Int
+      width _ = fromInteger (natVal' (proxy# :: Proxy# n))
 
       copy :: forall a. Storable a => Ptr a -> Ptr a -> Int -> IO ()
       copy u v s = copyBytes u v (n * s * sizeOf (undefined::a))

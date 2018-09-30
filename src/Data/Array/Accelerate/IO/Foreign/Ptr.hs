@@ -1,4 +1,7 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE MagicHash           #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Foreign.Ptr
 -- Copyright   : [2017] Trevor L. McDonell
@@ -15,10 +18,14 @@ module Data.Array.Accelerate.IO.Foreign.Ptr
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Array.Unique
+import Data.Array.Accelerate.Type
 
 import Foreign.Ptr
 import Foreign.ForeignPtr
 import System.IO.Unsafe
+
+import GHC.Base
+import GHC.TypeLits
 
 
 -- | A family of types which represent a collection of 'Ptr's. The
@@ -50,6 +57,10 @@ fromPtrs sh ps = Array (fromElt sh) (aux arrayElt ps)
     wrap :: (UniqueArray e -> r) -> Ptr e -> r
     wrap k p = k (unsafePerformIO $ newUniqueArray =<< newForeignPtr_ p)
 
+    vec :: forall n e. KnownNat n => ArrayData e -> ArrayData (Vec n e)
+    vec = let !(I# n#) = fromInteger (natVal' (proxy# :: Proxy# n))
+          in  AD_Vec n#
+
     aux :: ArrayEltR e -> Ptrs e -> ArrayData e
     aux ArrayEltRunit           = const AD_Unit
     aux ArrayEltRint            = wrap AD_Int
@@ -62,29 +73,12 @@ fromPtrs sh ps = Array (fromElt sh) (aux arrayElt ps)
     aux ArrayEltRword16         = wrap AD_Word16
     aux ArrayEltRword32         = wrap AD_Word32
     aux ArrayEltRword64         = wrap AD_Word64
-    aux ArrayEltRcshort         = wrap AD_CShort
-    aux ArrayEltRcushort        = wrap AD_CUShort
-    aux ArrayEltRcint           = wrap AD_CInt
-    aux ArrayEltRcuint          = wrap AD_CUInt
-    aux ArrayEltRclong          = wrap AD_CLong
-    aux ArrayEltRculong         = wrap AD_CULong
-    aux ArrayEltRcllong         = wrap AD_CLLong
-    aux ArrayEltRcullong        = wrap AD_CULLong
     aux ArrayEltRhalf           = wrap AD_Half
     aux ArrayEltRfloat          = wrap AD_Float
     aux ArrayEltRdouble         = wrap AD_Double
-    aux ArrayEltRcfloat         = wrap AD_CFloat
-    aux ArrayEltRcdouble        = wrap AD_CDouble
     aux ArrayEltRbool           = wrap AD_Bool
     aux ArrayEltRchar           = wrap AD_Char
-    aux ArrayEltRcchar          = wrap AD_CChar
-    aux ArrayEltRcschar         = wrap AD_CSChar
-    aux ArrayEltRcuchar         = wrap AD_CUChar
-    aux (ArrayEltRvec2 ae)      = AD_V2 . aux ae
-    aux (ArrayEltRvec3 ae)      = AD_V3 . aux ae
-    aux (ArrayEltRvec4 ae)      = AD_V4 . aux ae
-    aux (ArrayEltRvec8 ae)      = AD_V8 . aux ae
-    aux (ArrayEltRvec16 ae)     = AD_V16 . aux ae
+    aux (ArrayEltRvec ae)       = \v       -> vec (aux ae v)
     aux (ArrayEltRpair ae1 ae2) = \(v1,v2) -> AD_Pair (aux ae1 v1) (aux ae2 v2)
 
 
