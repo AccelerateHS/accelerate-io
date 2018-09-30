@@ -31,8 +31,8 @@ Extra-source-files:
 
 library
   build-depends:
-          base            >= 4.7 && < 4.12
         , accelerate      >= 1.2
+          base            >= 4.8 && < 4.12
         , array           >= 0.3
         , bmp             >= 1.2
         , bytestring      >= 0.9
@@ -92,7 +92,7 @@ test-suite test-io
   ghc-options:          -main-is Test
 
   build-depends:
-        base                    >= 4.7  && < 4.12
+        base                    >= 4.8  && < 4.12
       , accelerate
       , accelerate-io
       , array
