@@ -105,7 +105,7 @@ fromForeignPtrs sh fps = Array (fromElt sh) (aux arrayElt fps)
 --
 -- @since 1.1.0.0@
 --
-{-# LANGUAGE toForeignPts #-}
+{-# INLINE toForeignPtrs #-}
 toForeignPtrs :: (Shape sh, Elt e) => Array sh e -> ForeignPtrs (EltRepr e)
 toForeignPtrs (Array _ adata) = aux arrayElt adata
   where
