@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- |
 -- Module      : Test.Vector.Storable
@@ -132,7 +133,7 @@ test_a2s_dim
     => Gen sh
     -> TestTree
 test_a2s_dim dim =
-  testGroup (printf "DIM%d" (rank (undefined::sh)))
+  testGroup (printf "DIM%d" (rank @sh))
     [ testProperty "Int"                    $ test_a2s dim int
     , testProperty "Int8"                   $ test_a2s dim i8
     , testProperty "Int16"                  $ test_a2s dim i16

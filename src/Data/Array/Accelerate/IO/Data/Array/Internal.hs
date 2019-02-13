@@ -1,9 +1,11 @@
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- |
--- Module      : Data.Array.Accelerate.IO.Data.Array.Internal
--- Copyright   : [2017] Trevor L. McDonell
+-- Module      : Data.Array.Accelerate.IO.Data.Array.Internal -- Copyright   : [2017] Trevor L. McDonell
 -- License     : BSD3
 --
 -- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
@@ -14,6 +16,12 @@
 module Data.Array.Accelerate.IO.Data.Array.Internal
   where
 
+import Data.Proxy
+
+import GHC.Base
+import GHC.TypeLits
+
+import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Error
 import Data.Array.Accelerate.Type
@@ -25,7 +33,7 @@ type family IxShapeRepr e where
   IxShapeRepr (t,h) = (IxShapeRepr t, h)
 
 fromIxShapeRepr :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix) => sh -> ix
-fromIxShapeRepr sh = toElt (go (eltType (undefined::ix)) (fromElt sh))
+fromIxShapeRepr sh = toElt (go (eltType @ix) (fromElt sh))
   where
     go :: forall ix'. TupleType ix' -> IxShapeRepr ix' -> ix'
     go TypeRunit                                                                    ()     = ()
@@ -35,7 +43,7 @@ fromIxShapeRepr sh = toElt (go (eltType (undefined::ix)) (fromElt sh))
       $internalError "fromIxShapeRepr" "not a valid IArray.Ix"
 
 toIxShapeRepr :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix) => ix -> sh
-toIxShapeRepr ix = toElt (go (eltType (undefined::ix)) (fromElt ix))
+toIxShapeRepr ix = toElt (go (eltType @ix) (fromElt ix))
   where
     go :: forall ix'. TupleType ix' -> ix' -> IxShapeRepr ix'
     go TypeRunit                                                                    ()     = ()
@@ -44,3 +52,6 @@ toIxShapeRepr ix = toElt (go (eltType (undefined::ix)) (fromElt ix))
     go _ _ =
       $internalError "toIxShapeRepr" "not a valid IArray.Ix"
 
+arrayEltRvecWidthUnboxed :: forall n a. KnownNat n => ArrayEltR (Vec n a) -> Int#
+arrayEltRvecWidthUnboxed _ = let !(I# w#) = fromIntegral (natVal (Proxy @n))
+                             in w#

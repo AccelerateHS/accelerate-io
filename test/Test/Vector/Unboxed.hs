@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 -- |
 -- Module      : Test.Vector.Unboxed
 -- Copyright   : [2017] Trevor L. McDonell
@@ -62,7 +63,7 @@ test_a2u_dim
     => Gen sh
     -> TestTree
 test_a2u_dim dim =
-  testGroup (printf "DIM%d" (rank (undefined::sh)))
+  testGroup (printf "DIM%d" (rank @sh))
     [ testProperty "Int"                    $ test_a2u dim int
     , testProperty "Int8"                   $ test_a2u dim i8
     , testProperty "Int16"                  $ test_a2u dim i16

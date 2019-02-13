@@ -20,6 +20,7 @@ import Foreign.Ptr
 import Foreign.ForeignPtr
 import System.IO.Unsafe
 
+import Data.Array.Accelerate.IO.Data.Array.Internal (arrayEltRvecWidthUnboxed)
 
 -- | A family of types which represent a collection of 'Ptr's. The
 -- structure of the collection depends on the element type @e@.
@@ -62,29 +63,12 @@ fromPtrs sh ps = Array (fromElt sh) (aux arrayElt ps)
     aux ArrayEltRword16         = wrap AD_Word16
     aux ArrayEltRword32         = wrap AD_Word32
     aux ArrayEltRword64         = wrap AD_Word64
-    aux ArrayEltRcshort         = wrap AD_CShort
-    aux ArrayEltRcushort        = wrap AD_CUShort
-    aux ArrayEltRcint           = wrap AD_CInt
-    aux ArrayEltRcuint          = wrap AD_CUInt
-    aux ArrayEltRclong          = wrap AD_CLong
-    aux ArrayEltRculong         = wrap AD_CULong
-    aux ArrayEltRcllong         = wrap AD_CLLong
-    aux ArrayEltRcullong        = wrap AD_CULLong
     aux ArrayEltRhalf           = wrap AD_Half
     aux ArrayEltRfloat          = wrap AD_Float
     aux ArrayEltRdouble         = wrap AD_Double
-    aux ArrayEltRcfloat         = wrap AD_CFloat
-    aux ArrayEltRcdouble        = wrap AD_CDouble
     aux ArrayEltRbool           = wrap AD_Bool
     aux ArrayEltRchar           = wrap AD_Char
-    aux ArrayEltRcchar          = wrap AD_CChar
-    aux ArrayEltRcschar         = wrap AD_CSChar
-    aux ArrayEltRcuchar         = wrap AD_CUChar
-    aux (ArrayEltRvec2 ae)      = AD_V2 . aux ae
-    aux (ArrayEltRvec3 ae)      = AD_V3 . aux ae
-    aux (ArrayEltRvec4 ae)      = AD_V4 . aux ae
-    aux (ArrayEltRvec8 ae)      = AD_V8 . aux ae
-    aux (ArrayEltRvec16 ae)     = AD_V16 . aux ae
+    aux aev@(ArrayEltRvec ae)   = AD_Vec (arrayEltRvecWidthUnboxed aev) . aux ae
     aux (ArrayEltRpair ae1 ae2) = \(v1,v2) -> AD_Pair (aux ae1 v1) (aux ae2 v2)
 
 

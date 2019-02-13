@@ -2,6 +2,7 @@
 {-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Data.Array.Unboxed
@@ -96,7 +97,7 @@ fromUArray (UArray lo hi n ba#) = Array (fromElt sh) (aux (arrayElt :: ArrayEltR
 --
 {-# INLINE toUArray #-}
 toUArray
-    :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray UArray e, Ix ix, Shape sh, Elt ix)
+    :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray UArray e, Ix ix, Shape sh, Elt ix, ArrayElt (EltRepr e))
     => Maybe ix         -- ^ if 'Just' this is the index lower bound, otherwise the array is indexed from zero
     -> Array sh e
     -> UArray ix e
@@ -117,7 +118,7 @@ toUArray mix0 arr@(Array sh adata) =
         Just ix0 -> offset' ix0 ix
 
     offset' :: ix -> sh -> sh
-    offset' ix0 = toElt . go (eltType (undefined::sh)) (fromElt (toIxShapeRepr ix0 :: sh)) . fromElt
+    offset' ix0 = toElt . go (eltType @sh) (fromElt (toIxShapeRepr ix0 :: sh)) . fromElt
       where
         go :: TupleType sh' -> sh' -> sh' -> sh'
         go TypeRunit                                                                    ()       ()    = ()
