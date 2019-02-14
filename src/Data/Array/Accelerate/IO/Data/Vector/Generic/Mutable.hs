@@ -114,7 +114,7 @@ instance Elt e => V.MVector MVector e where
       go ArrayEltRdouble         (AD_Double v1)    (AD_Double v2)    !s = overlaps v1 v2 s
       go ArrayEltRbool           (AD_Bool v1)      (AD_Bool v2)      !s = overlaps v1 v2 s
       go ArrayEltRchar           (AD_Char v1)      (AD_Char v2)      !s = overlaps v1 v2 s
-      go (ArrayEltRvec ae)       (AD_Vec n# v1)    (AD_Vec _ v2)     !s = go ae v1 v2 (I# n# * s)
+      go (ArrayEltRvec ae)       (AD_Vec n# v1)    (AD_Vec _ v2)     !s = go ae v1 v2 (I# n# * s) -- the type ensures these must be the same vector width
       go (ArrayEltRpair ae1 ae2) (AD_Pair v11 v12) (AD_Pair v21 v22) !s = go ae1 v11 v21 s || go ae2 v12 v22 s
 
       overlaps :: forall a. Storable a => UniqueArray a -> UniqueArray a -> Int -> Bool
