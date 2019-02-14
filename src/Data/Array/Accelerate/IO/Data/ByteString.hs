@@ -152,7 +152,6 @@ toByteStrings (Array sh adata) = aux arrayElt adata
     aux (ArrayEltRvec ae)       (AD_Vec _ s)    = aux ae s
     aux (ArrayEltRpair ae1 ae2) (AD_Pair s1 s2) = (aux ae1 s1, aux ae2 s2)
 
-
 #if !MIN_VERSION_base(4,10,0)
 plusForeignPtr :: ForeignPtr a -> Int -> ForeignPtr b
 plusForeignPtr (ForeignPtr addr# c) (I# d#) = ForeignPtr (plusAddr# addr# d#) c
