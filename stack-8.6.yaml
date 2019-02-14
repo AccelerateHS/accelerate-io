@@ -10,6 +10,8 @@ extra-deps:
 - git:    https://github.com/tmcdonell/accelerate.git
   commit: 547bd5e4d41394fea1e636310824e39ab4257c93
 
+- tasty-hedgehog-0.2.0.0
+
 # Override default flag values for local packages and extra-deps
 # flags: {}
 
