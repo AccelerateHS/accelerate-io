@@ -5,6 +5,7 @@ resolver: lts-13.5
 
 packages:
 - accelerate-io
+- accelerate-io-bmp
 - accelerate-io-bytestring
 
 extra-deps:
