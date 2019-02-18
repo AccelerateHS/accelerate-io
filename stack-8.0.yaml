@@ -5,6 +5,7 @@ resolver: lts-9.21
 
 packages:
 - accelerate-io
+- accelerate-io-bytestring
 
 extra-deps:
 - git:    https://github.com/tmcdonell/accelerate.git

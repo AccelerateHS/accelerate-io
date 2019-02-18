@@ -35,7 +35,6 @@ library
         , accelerate      >= 1.3
         , array           >= 0.3
         , bmp             >= 1.2
-        , bytestring      >= 0.9
         , primitive       >= 0.6
         , repa            >= 3.2
         , vector          >= 0.9
@@ -43,9 +42,6 @@ library
   exposed-modules:
         -- bmp
         Data.Array.Accelerate.IO.Codec.BMP
-
-        -- bytestring
-        Data.Array.Accelerate.IO.Data.ByteString
 
         -- vector
         Data.Array.Accelerate.IO.Data.Vector.Generic
