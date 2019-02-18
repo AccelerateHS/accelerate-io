@@ -7,6 +7,7 @@ packages:
 - accelerate-io
 - accelerate-io-bmp
 - accelerate-io-bytestring
+- accelerate-io-vector
 
 extra-deps:
 - git:    https://github.com/tmcdonell/accelerate.git

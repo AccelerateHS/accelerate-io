@@ -31,18 +31,9 @@ library
           base            >= 4.8 && < 4.13
         , accelerate      >= 1.3
         , array           >= 0.3
-        , primitive       >= 0.6
         , repa            >= 3.2
-        , vector          >= 0.9
 
   exposed-modules:
-        -- vector
-        Data.Array.Accelerate.IO.Data.Vector.Generic
-        Data.Array.Accelerate.IO.Data.Vector.Generic.Mutable
-        Data.Array.Accelerate.IO.Data.Vector.Primitive
-        Data.Array.Accelerate.IO.Data.Vector.Storable
-        Data.Array.Accelerate.IO.Data.Vector.Unboxed
-
         -- array
         Data.Array.Accelerate.IO.Data.Array.IArray
         Data.Array.Accelerate.IO.Data.Array.Unboxed

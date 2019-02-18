@@ -12,8 +12,6 @@ module Test where
 
 import Test.Tasty
 
-import Test.Array.IArray
-import Test.Array.Unboxed
 import Test.Vector.Storable
 import Test.Vector.Unboxed
 
@@ -23,7 +21,5 @@ main
   $ testGroup "IO"
     [ test_vector_unboxed
     , test_vector_storable
-    , test_array_iarray
-    , test_array_unboxed
     ]
 
