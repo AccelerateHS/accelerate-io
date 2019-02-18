@@ -14,11 +14,8 @@ Description:
 
 License:                BSD3
 License-file:           LICENSE
-Author:                 Manuel M T Chakravarty,
-                        Gabriele Keller,
-                        Sean Seefried,
-                        Trevor L. McDonell
-Maintainer:             Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
+Author:                 The Accelerate Team
+Maintainer:             Trevor L. McDonell <trevor.mcdonell@gmail.com>
 Homepage:               https://github.com/AccelerateHS/accelerate-io
 Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
 
