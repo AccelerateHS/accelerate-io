@@ -34,7 +34,7 @@ import Data.Array.Accelerate.Type
 import qualified Data.Array.Accelerate.Array.Representation         as R
 
 import Data.Array.Accelerate.IO.Data.Array.Internal
-import Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
+import Data.Array.Accelerate.IO.Data.Primitive.ByteArray
 
 import Data.Primitive                                               ( Prim, sizeOf )
 import Data.Primitive.ByteArray
