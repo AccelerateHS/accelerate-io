@@ -8,12 +8,13 @@ packages:
 - accelerate-io-array
 - accelerate-io-bmp
 - accelerate-io-bytestring
+- accelerate-io-JuicyPixels
 - accelerate-io-repa
 - accelerate-io-vector
 
 extra-deps:
 - git:    https://github.com/tmcdonell/accelerate.git
-  commit: 547bd5e4d41394fea1e636310824e39ab4257c93
+  commit: ae15f6531e74b32577d80ea29ebb54075926799a
 
 - primitive-0.6.4.0
 
