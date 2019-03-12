@@ -15,11 +15,10 @@ module Data.Array.Accelerate.IO.Codec.Picture
 
 import Data.Array.Accelerate                              hiding ( Vector )
 import Data.Array.Accelerate.Array.Sugar                  ( EltRepr )
-import Data.Array.Accelerate.IO.Codec.Picture.Types       () -- instances
+import Data.Array.Accelerate.IO.Codec.Picture.Types
 import Data.Array.Accelerate.IO.Data.Vector.Storable
 
 import Data.Vector.Storable                               ( Vector )
-import Codec.Picture
 
 
 -- | /O(1)/. Convert an Accelerate 'Array' into an 'Image'.

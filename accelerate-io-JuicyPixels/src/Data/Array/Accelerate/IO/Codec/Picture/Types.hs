@@ -17,8 +17,25 @@
 -- Portability : non-portable (GHC extensions)
 --
 
-module Data.Array.Accelerate.IO.Codec.Picture.Types
-  where
+module Data.Array.Accelerate.IO.Codec.Picture.Types (
+
+  Image(..),
+  Pixel(PixelBaseComponent),
+  Pixel8, Pixel16, Pixel32, PixelF,
+
+  PixelYA8(..),     pattern PixelYA8_,
+  PixelYA16(..),    pattern PixelYA16_,
+  PixelRGB8(..),    pattern PixelRGB8_,
+  PixelRGB16(..),   pattern PixelRGB16_,
+  PixelRGBF(..),    pattern PixelRGBF_,
+  PixelRGBA8(..),   pattern PixelRGBA8_,
+  PixelRGBA16(..),  pattern PixelRGBA16_,
+  PixelCMYK8(..),   pattern PixelCMYK8_,
+  PixelCMYK16(..),  pattern PixelCMYK16_,
+  PixelYCbCr8(..),  pattern PixelYCbCr8_,
+  PixelYCbCrK8(..), pattern PixelYCbCrK8_,
+
+) where
 
 import Data.Array.Accelerate
 import Data.Array.Accelerate.Type
