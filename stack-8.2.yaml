@@ -14,7 +14,7 @@ packages:
 
 extra-deps:
 - git:    https://github.com/tmcdonell/accelerate.git
-  commit: ae15f6531e74b32577d80ea29ebb54075926799a
+  commit: d73f3dcf5ce27a03d19e7394711f33e88254cd26
 
 - half-0.3
 
