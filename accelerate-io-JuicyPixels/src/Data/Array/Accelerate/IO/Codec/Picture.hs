@@ -10,8 +10,13 @@
 -- Portability : non-portable (GHC extensions)
 --
 
-module Data.Array.Accelerate.IO.Codec.Picture
-  where
+module Data.Array.Accelerate.IO.Codec.Picture (
+
+  imageOfArray,
+  arrayOfImage,
+  module Data.Array.Accelerate.IO.Codec.Picture.Types,
+
+) where
 
 import Data.Array.Accelerate                              hiding ( Vector )
 import Data.Array.Accelerate.Array.Sugar                  ( EltRepr )
