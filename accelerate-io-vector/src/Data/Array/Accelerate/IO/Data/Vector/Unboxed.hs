@@ -69,43 +69,43 @@ class (U.Unbox e, A.Elt e) => Unbox e where
   arrayDataOfUnboxed :: U.Vector e -> ArrayData (EltRepr e)
   unboxedOfArrayData :: Int -> ArrayData (EltRepr e) -> U.Vector e
 
-instance Unbox Int    where
+instance Unbox Int where
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Int v) = AD_Int (uniqueArrayOfVector v)
   unboxedOfArrayData !n (AD_Int v) = V_Int (vectorOfUniqueArray n v)
 
-instance Unbox Int8   where
+instance Unbox Int8 where
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Int8 v) = AD_Int8 (uniqueArrayOfVector v)
   unboxedOfArrayData !n (AD_Int8 v) = V_Int8 (vectorOfUniqueArray n v)
 
-instance Unbox Int16  where
+instance Unbox Int16 where
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Int16 v) = AD_Int16 (uniqueArrayOfVector v)
   unboxedOfArrayData !n (AD_Int16 v) = V_Int16 (vectorOfUniqueArray n v)
 
-instance Unbox Int32  where
+instance Unbox Int32 where
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Int32 v) = AD_Int32 (uniqueArrayOfVector v)
   unboxedOfArrayData !n (AD_Int32 v) = V_Int32 (vectorOfUniqueArray n v)
 
-instance Unbox Int64  where
+instance Unbox Int64 where
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Int64 v)  = AD_Int64 (uniqueArrayOfVector v)
   unboxedOfArrayData !n (AD_Int64 v) = V_Int64 (vectorOfUniqueArray n v)
 
-instance Unbox Word   where
+instance Unbox Word where
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Word v) = AD_Word (uniqueArrayOfVector v)
   unboxedOfArrayData !n (AD_Word v) = V_Word (vectorOfUniqueArray n v)
 
-instance Unbox Word8  where
+instance Unbox Word8 where
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Word8 v) = AD_Word8 (uniqueArrayOfVector v)
@@ -129,7 +129,7 @@ instance Unbox Word64 where
   arrayDataOfUnboxed (V_Word64 v) = AD_Word64 (uniqueArrayOfVector v)
   unboxedOfArrayData !n (AD_Word64 v) = V_Word64 (vectorOfUniqueArray n v)
 
-instance Unbox Float  where
+instance Unbox Float where
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Float v) = AD_Float (uniqueArrayOfVector v)
@@ -141,19 +141,19 @@ instance Unbox Double where
   arrayDataOfUnboxed (V_Double v) = AD_Double (uniqueArrayOfVector v)
   unboxedOfArrayData !n (AD_Double v) = V_Double (vectorOfUniqueArray n v)
 
-instance Unbox Char   where
+instance Unbox Char where
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Char v) = AD_Char (uniqueArrayOfVector v)
   unboxedOfArrayData !n (AD_Char v) = V_Char (vectorOfUniqueArray n v)
 
-instance Unbox Bool   where
+instance Unbox Bool where
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed (V_Bool v) = AD_Bool (uniqueArrayOfVector v)
   unboxedOfArrayData !n (AD_Bool v) = V_Bool (vectorOfUniqueArray n v)
 
-instance Unbox ()  where
+instance Unbox () where
   {-# INLINE arrayDataOfUnboxed #-}
   {-# INLINE unboxedOfArrayData #-}
   arrayDataOfUnboxed V_Unit{} = AD_Unit
