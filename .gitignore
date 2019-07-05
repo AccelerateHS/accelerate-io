@@ -2,3 +2,4 @@ dist/
 /.stack-work
 /stack.yaml
 .DS_Store
+/stack.yaml.lock
