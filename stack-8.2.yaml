@@ -13,8 +13,8 @@ packages:
 - accelerate-io-vector
 
 extra-deps:
-- git:    https://github.com/tmcdonell/accelerate.git
-  commit: d73f3dcf5ce27a03d19e7394711f33e88254cd26
+- github: tmcdonell/accelerate
+  commit: 5c2c1db205fcf1e0777ef9399959100b75e7bbec
 
 - half-0.3
 

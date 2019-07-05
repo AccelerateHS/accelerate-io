@@ -1,7 +1,7 @@
 # For more information, see: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 # vim: nospell
 
-resolver: lts-13.12
+resolver: lts-13.25
 
 packages:
 - accelerate-io
@@ -13,10 +13,11 @@ packages:
 - accelerate-io-vector
 
 extra-deps:
-- git:    https://github.com/tmcdonell/accelerate.git
-  commit: d73f3dcf5ce27a03d19e7394711f33e88254cd26
+- github: tmcdonell/accelerate
+  commit: 5c2c1db205fcf1e0777ef9399959100b75e7bbec
 
-- tasty-hedgehog-0.2.0.0
+- hedgehog-1.0
+- tasty-hedgehog-1.0.0.1
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
