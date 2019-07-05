@@ -8,6 +8,7 @@ packages:
 - accelerate-io-array
 - accelerate-io-bmp
 - accelerate-io-bytestring
+- accelerate-io-cereal
 - accelerate-io-JuicyPixels
 - accelerate-io-repa
 - accelerate-io-vector
