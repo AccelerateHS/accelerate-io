@@ -122,34 +122,31 @@ fromByteStrings sh bs = Array (fromElt sh) (aux arrayElt bs)
 --
 {-# INLINE toByteStrings #-}
 toByteStrings :: (Shape sh, Elt e) => Array sh e -> ByteStrings (EltRepr e)
-toByteStrings (Array sh adata) = aux arrayElt adata
+toByteStrings (Array sh adata) = aux arrayElt adata 1
   where
-    n :: Int
-    n = R.size sh
+    wrap :: forall a. Storable a => UniqueArray a -> Int -> ByteString
+    wrap (unsafeGetValue . uniqueArrayData -> fp) k =
+      B.fromForeignPtr (castForeignPtr fp) 0 (R.size sh * k * sizeOf (undefined::a))
 
-    wrap :: forall a. Storable a => UniqueArray a -> ByteString
-    wrap (unsafeGetValue . uniqueArrayData -> fp) =
-      B.fromForeignPtr (castForeignPtr fp) 0 (n * sizeOf (undefined::a))
-
-    aux :: ArrayEltR e -> ArrayData e -> ByteStrings e
-    aux ArrayEltRunit           AD_Unit         = ()
-    aux ArrayEltRint            (AD_Int s)      = wrap s
-    aux ArrayEltRint8           (AD_Int8 s)     = wrap s
-    aux ArrayEltRint16          (AD_Int16 s)    = wrap s
-    aux ArrayEltRint32          (AD_Int32 s)    = wrap s
-    aux ArrayEltRint64          (AD_Int64 s)    = wrap s
-    aux ArrayEltRword           (AD_Word s)     = wrap s
-    aux ArrayEltRword8          (AD_Word8 s)    = wrap s
-    aux ArrayEltRword16         (AD_Word16 s)   = wrap s
-    aux ArrayEltRword32         (AD_Word32 s)   = wrap s
-    aux ArrayEltRword64         (AD_Word64 s)   = wrap s
-    aux ArrayEltRhalf           (AD_Half s)     = wrap s
-    aux ArrayEltRfloat          (AD_Float s)    = wrap s
-    aux ArrayEltRdouble         (AD_Double s)   = wrap s
-    aux ArrayEltRbool           (AD_Bool s)     = wrap s
-    aux ArrayEltRchar           (AD_Char s)     = wrap s
-    aux (ArrayEltRvec ae)       (AD_Vec _ s)    = aux ae s
-    aux (ArrayEltRpair ae1 ae2) (AD_Pair s1 s2) = (aux ae1 s1, aux ae2 s2)
+    aux :: ArrayEltR e -> ArrayData e -> Int -> ByteStrings e
+    aux ArrayEltRunit           AD_Unit         !_ = ()
+    aux ArrayEltRint            (AD_Int s)      !k = wrap s k
+    aux ArrayEltRint8           (AD_Int8 s)     !k = wrap s k
+    aux ArrayEltRint16          (AD_Int16 s)    !k = wrap s k
+    aux ArrayEltRint32          (AD_Int32 s)    !k = wrap s k
+    aux ArrayEltRint64          (AD_Int64 s)    !k = wrap s k
+    aux ArrayEltRword           (AD_Word s)     !k = wrap s k
+    aux ArrayEltRword8          (AD_Word8 s)    !k = wrap s k
+    aux ArrayEltRword16         (AD_Word16 s)   !k = wrap s k
+    aux ArrayEltRword32         (AD_Word32 s)   !k = wrap s k
+    aux ArrayEltRword64         (AD_Word64 s)   !k = wrap s k
+    aux ArrayEltRhalf           (AD_Half s)     !k = wrap s k
+    aux ArrayEltRfloat          (AD_Float s)    !k = wrap s k
+    aux ArrayEltRdouble         (AD_Double s)   !k = wrap s k
+    aux ArrayEltRbool           (AD_Bool s)     !k = wrap s k
+    aux ArrayEltRchar           (AD_Char s)     !k = wrap s k
+    aux (ArrayEltRvec ae)       (AD_Vec n# s)   !k = aux ae s (k * I# n#)
+    aux (ArrayEltRpair ae1 ae2) (AD_Pair s1 s2) !k = (aux ae1 s1 k, aux ae2 s2 k)
 
 #if !MIN_VERSION_base(4,10,0)
 plusForeignPtr :: ForeignPtr a -> Int -> ForeignPtr b
