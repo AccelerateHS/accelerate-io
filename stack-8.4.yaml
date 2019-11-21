@@ -15,7 +15,7 @@ packages:
 
 extra-deps:
 - github: tmcdonell/accelerate
-  commit: 5c2c1db205fcf1e0777ef9399959100b75e7bbec
+  commit: fe5b5430a3867cc15b2631fdd6aa3058283ce5f7
 
 - primitive-0.6.4.0
 
