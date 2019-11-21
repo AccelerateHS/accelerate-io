@@ -31,7 +31,7 @@ byteArrayOfForeignPtr (I# bytes#) (ForeignPtr addr# c) = IO $ \s ->
     PlainPtr mba# -> case unsafeFreezeByteArray# mba# s of
                        (# s', ba#  #) -> (# s', ByteArray ba# #)
 
-    _             -> case newAlignedPinnedByteArray# bytes# 16# s      of { (# s1, mba# #) ->
+    _             -> case newAlignedPinnedByteArray# bytes# 64# s      of { (# s1, mba# #) ->
                      case copyAddrToByteArray# addr# mba# 0# bytes# s1 of { s2 ->
                      case unsafeFreezeByteArray# mba# s2               of { (# s3, ba# #) ->
                        (# s3, ByteArray ba# #) }}}
@@ -44,7 +44,7 @@ byteArrayOfForeignPtr (I# bytes#) (ForeignPtr addr# c) = IO $ \s ->
 foreignPtrOfByteArray :: Int -> Int -> ByteArray -> IO (ForeignPtr a)
 foreignPtrOfByteArray (I# soff#) (I# bytes#) (ByteArray ba#) = IO $ \s ->
   case isByteArrayPinned# ba# of
-    0# -> case newAlignedPinnedByteArray# bytes# 16# s    of { (# s1, mba# #) ->
+    0# -> case newAlignedPinnedByteArray# bytes# 64# s    of { (# s1, mba# #) ->
           case copyByteArray# ba# 0# mba# soff# bytes# s1 of { s2 ->
             (# s2, ForeignPtr (byteArrayContents# (unsafeCoerce# mba#)) (PlainPtr mba#) #) }}
 
