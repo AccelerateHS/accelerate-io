@@ -24,8 +24,8 @@ extra-source-files:
 
 library
   build-depends:
-          base            >= 4.8 && < 4.13
-        , accelerate      >= 1.3
+          base            >= 4.10 && < 4.14
+        , accelerate      >= 1.4
         , primitive       >= 0.6
         , vector          >= 0.9
 
@@ -59,7 +59,7 @@ test-suite test-io
   ghc-options:          -main-is Test
 
   build-depends:
-        base                    >= 4.8  && < 4.13
+        base                    >= 4.10 && < 4.14
       , accelerate
       , accelerate-io-vector
       , hedgehog                >= 0.5
