@@ -14,8 +14,8 @@ packages:
 - accelerate-io-vector
 
 extra-deps:
-- github: tmcdonell/accelerate
-  commit: fe5b5430a3867cc15b2631fdd6aa3058283ce5f7
+- github: AccelerateHS/accelerate
+  commit: de95f21285a0a39df8b391e27bdf4a47890debb9
 
 - primitive-0.6.4.0
 
