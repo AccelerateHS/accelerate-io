@@ -1,6 +1,12 @@
-{-# LANGUAGE BangPatterns    #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies    #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+-- TODO: Why is the pattern checker complaining that these pattern matches are
+--       redundant?
+{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+
 -- |
 -- Module      : Data.Array.Accelerate.IO.Data.Vector.Primitive
 -- Copyright   : [2017..2019] The Accelerate Team
@@ -31,6 +37,8 @@ import Data.Array.Accelerate.Array.Sugar                            hiding ( Vec
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Error
 import qualified Data.Array.Accelerate.Array.Representation         as R
+
+import Data.Array.Accelerate.IO.Data.Patterns
 
 import Data.Int
 import Data.Word
@@ -69,8 +77,8 @@ type instance Vectors (a,b)  = (Vectors a, Vectors b)
 -- @since 1.1.0.0@
 --
 {-# INLINE fromVectors #-}
-fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
-fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
+fromVectors :: forall sh e. (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
+fromVectors sh vecs = Array $ R.Array (fromElt sh) (aux (eltType @e) vecs)
   where
     {-# INLINE wrap #-}
     wrap :: Prim a => Vector a -> UniqueArray a
@@ -79,22 +87,22 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
       $ uniqueArrayOfVector v
 
     {-# INLINE aux #-}
-    aux :: ArrayEltR e -> Vectors e -> ArrayData e
-    aux ArrayEltRunit           _       = AD_Unit
-    aux ArrayEltRint            v       = AD_Int    (wrap v)
-    aux ArrayEltRint8           v       = AD_Int8   (wrap v)
-    aux ArrayEltRint16          v       = AD_Int16  (wrap v)
-    aux ArrayEltRint32          v       = AD_Int32  (wrap v)
-    aux ArrayEltRint64          v       = AD_Int64  (wrap v)
-    aux ArrayEltRword           v       = AD_Word   (wrap v)
-    aux ArrayEltRword8          v       = AD_Word8  (wrap v)
-    aux ArrayEltRword16         v       = AD_Word16 (wrap v)
-    aux ArrayEltRword32         v       = AD_Word32 (wrap v)
-    aux ArrayEltRword64         v       = AD_Word64 (wrap v)
-    aux ArrayEltRchar           v       = AD_Char   (wrap v)
-    aux ArrayEltRfloat          v       = AD_Float  (wrap v)
-    aux ArrayEltRdouble         v       = AD_Double (wrap v)
-    aux (ArrayEltRpair ad1 ad2) (v1,v2) = AD_Pair   (aux ad1 v1) (aux ad2 v2)
+    aux :: TupleType a -> Vectors a -> ArrayData a
+    aux TupRunit         _        = ()
+    aux TupInt           v        = wrap v
+    aux TupInt8          v        = wrap v
+    aux TupInt16         v        = wrap v
+    aux TupInt32         v        = wrap v
+    aux TupInt64         v        = wrap v
+    aux TupWord          v        = wrap v
+    aux TupWord8         v        = wrap v
+    aux TupWord16        v        = wrap v
+    aux TupWord32        v        = wrap v
+    aux TupWord64        v        = wrap v
+    aux TupFloat         v        = wrap v
+    aux TupDouble        v        = wrap v
+    aux TupChar          v        = wrap v
+    aux (TupRpair t1 t2) (v1, v2) = (aux t1 v1, aux t2 v2)
     --
     aux _ _ = $internalError "fromVectors" "unsupported type"
 
@@ -108,33 +116,33 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
 -- @since 1.1.0.0@
 --
 {-# INLINE toVectors #-}
-toVectors :: (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
-toVectors (Array sh adata) = aux arrayElt adata
+toVectors :: forall sh e. (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
+toVectors (Array (R.Array sh adata)) = aux (eltType @e) adata
   where
     n :: Int
-    !n = R.size sh
+    !n = R.size (shapeR @sh) sh
 
     {-# INLINE wrap #-}
     wrap :: Prim a => UniqueArray a -> Vector a
     wrap ua = vectorOfUniqueArray n ua
 
     {-# INLINE aux #-}
-    aux :: ArrayEltR e -> ArrayData e -> Vectors e
-    aux ArrayEltRunit           AD_Unit         = ()
-    aux ArrayEltRint            (AD_Int v)      = wrap v
-    aux ArrayEltRint8           (AD_Int8 v)     = wrap v
-    aux ArrayEltRint16          (AD_Int16 v)    = wrap v
-    aux ArrayEltRint32          (AD_Int32 v)    = wrap v
-    aux ArrayEltRint64          (AD_Int64 v)    = wrap v
-    aux ArrayEltRword           (AD_Word v)     = wrap v
-    aux ArrayEltRword8          (AD_Word8 v)    = wrap v
-    aux ArrayEltRword16         (AD_Word16 v)   = wrap v
-    aux ArrayEltRword32         (AD_Word32 v)   = wrap v
-    aux ArrayEltRword64         (AD_Word64 v)   = wrap v
-    aux ArrayEltRchar           (AD_Char v)     = wrap v
-    aux ArrayEltRfloat          (AD_Float v)    = wrap v
-    aux ArrayEltRdouble         (AD_Double v)   = wrap v
-    aux (ArrayEltRpair ad1 ad2) (AD_Pair v1 v2) = (aux ad1 v1, aux ad2 v2)
+    aux :: TupleType a -> ArrayData a -> Vectors a
+    aux TupRunit         _        = ()
+    aux TupInt           v        = wrap v
+    aux TupInt8          v        = wrap v
+    aux TupInt16         v        = wrap v
+    aux TupInt32         v        = wrap v
+    aux TupInt64         v        = wrap v
+    aux TupWord          v        = wrap v
+    aux TupWord8         v        = wrap v
+    aux TupWord16        v        = wrap v
+    aux TupWord32        v        = wrap v
+    aux TupWord64        v        = wrap v
+    aux TupFloat         v        = wrap v
+    aux TupDouble        v        = wrap v
+    aux TupChar          v        = wrap v
+    aux (TupRpair t1 t2) (v1, v2) = (aux t1 v1, aux t2 v2)
     --
     aux _ _ = $internalError "toVectors" "unsupported type"
 

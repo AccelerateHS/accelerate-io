@@ -37,6 +37,7 @@ library
         Data.Array.Accelerate.IO.Data.Vector.Unboxed
 
   other-modules:
+        Data.Array.Accelerate.IO.Data.Patterns
         Data.Array.Accelerate.IO.Data.Primitive.ByteArray
         Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
 
