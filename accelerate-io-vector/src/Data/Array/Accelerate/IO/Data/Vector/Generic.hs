@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -28,6 +29,7 @@ module Data.Array.Accelerate.IO.Data.Vector.Generic
 
 import Data.Array.Accelerate.Array.Sugar                            as A
 import Data.Array.Accelerate.Array.Data                             as A
+import qualified Data.Array.Accelerate.Array.Representation         as Repr
 import Data.Array.Accelerate.IO.Data.Vector.Generic.Mutable         as A
 
 import qualified Data.Vector.Generic                                as V
@@ -43,15 +45,14 @@ instance Elt e => V.Vector Vector e where
   {-# INLINE basicUnsafeSlice  #-}
   {-# INLINE basicUnsafeIndexM #-}
   {-# INLINE basicUnsafeCopy   #-}
-  basicUnsafeFreeze (MArray sh mad)  = return (Array sh mad)
-  basicUnsafeThaw   (Array sh ad)    = return (MArray sh ad)
-  basicLength       (Array ((),n) _) = n
+  basicUnsafeFreeze (MArray sh mad)  = return (Array $ Repr.Array sh mad)
+  basicUnsafeThaw   (Array (Repr.Array sh ad))    = return (MArray sh ad)
+  basicLength       (Array (Repr.Array ((),n) _)) = n
 
-  basicUnsafeSlice i n (Array sh ad) =
+  basicUnsafeSlice i n (Array (Repr.Array sh ad)) =
     case M.basicUnsafeSlice i n (MArray sh ad :: MVector s e) of
-      MArray sh' mad' -> Array sh' mad'
+      MArray sh' mad' -> Array $ Repr.Array sh' mad'
 
-  basicUnsafeIndexM (Array _ ad) i   = return $ toElt (unsafeIndexArrayData ad i)
+  basicUnsafeIndexM (Array (Repr.Array _ ad)) i   = return $ toElt (unsafeIndexArrayData (eltType @e) ad i)
 
-  basicUnsafeCopy dst (Array sh ad)  = M.basicUnsafeCopy dst (MArray sh ad)
-
+  basicUnsafeCopy dst (Array (Repr.Array sh ad))  = M.basicUnsafeCopy dst (MArray sh ad)
