@@ -3,6 +3,7 @@
 {-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Data.Vector.Storable
@@ -34,12 +35,13 @@ import Data.Array.Accelerate.Lifetime
 import Data.Array.Accelerate.Type
 import qualified Data.Array.Accelerate.Array.Representation         as R
 
+import Data.Array.Accelerate.IO.Data.Patterns
+
 -- standard libraries
 import Data.Vector.Storable
 import System.IO.Unsafe
 
 import GHC.Base
-import GHC.TypeLits
 
 
 -- | A family of types that represents a collection of storable 'Vector's. The
@@ -81,41 +83,51 @@ type instance Vectors (a,b)     = (Vectors a, Vectors b)
 -- that each of the input vectors contains the right number of elements
 --
 {-# INLINE fromVectors #-}
-fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
-fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs 1)
+fromVectors :: forall sh e. (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
+fromVectors sh vecs = Array $ R.Array (fromElt sh) (aux (eltType @e) vecs 1)
   where
     {-# INLINE wrap #-}
-    wrap :: Storable e => (UniqueArray e -> a) -> Vector e -> Int -> a
-    wrap k v s
+    wrap :: Storable a => Vector a -> Int -> UniqueArray a
+    wrap v s
       = $boundsCheck "fromVectors" "shape mismatch" (vsize `quot` s == size sh)
-      $ k (unsafePerformIO $ newUniqueArray fp)
+      $ unsafePerformIO $ newUniqueArray fp
       where
         (fp,vsize) = unsafeToForeignPtr0 v
 
     {-# INLINE aux #-}
-    aux :: ArrayEltR e -> Vectors e -> Int -> ArrayData e
-    aux ArrayEltRunit           _       !_ = AD_Unit
-    aux ArrayEltRint            v       !s = wrap AD_Int v s
-    aux ArrayEltRint8           v       !s = wrap AD_Int8 v s
-    aux ArrayEltRint16          v       !s = wrap AD_Int16 v s
-    aux ArrayEltRint32          v       !s = wrap AD_Int32 v s
-    aux ArrayEltRint64          v       !s = wrap AD_Int64 v s
-    aux ArrayEltRword           v       !s = wrap AD_Word v s
-    aux ArrayEltRword8          v       !s = wrap AD_Word8 v s
-    aux ArrayEltRword16         v       !s = wrap AD_Word16 v s
-    aux ArrayEltRword32         v       !s = wrap AD_Word32 v s
-    aux ArrayEltRword64         v       !s = wrap AD_Word64 v s
-    aux ArrayEltRhalf           v       !s = wrap AD_Half v s
-    aux ArrayEltRfloat          v       !s = wrap AD_Float v s
-    aux ArrayEltRdouble         v       !s = wrap AD_Double v s
-    aux ArrayEltRbool           v       !s = wrap AD_Bool v s
-    aux ArrayEltRchar           v       !s = wrap AD_Char v s
-    aux aeR@(ArrayEltRvec ae)   v       !s = let !n@(I# n#) = width aeR in AD_Vec n# (aux ae v (n*s))
-    aux (ArrayEltRpair ae1 ae2) (v1,v2) !s = AD_Pair (aux ae1 v1 s) (aux ae2 v2 s)
-
-    {-# INLINE width #-}
-    width :: forall n a. KnownNat n => ArrayEltR (Vec n a) -> Int
-    width _ = fromInteger (natVal' (proxy# :: Proxy# n))
+    aux :: TupleType a -> Vectors a -> Int -> ArrayData a
+    aux TupRunit             () !_ = ()
+    aux TupInt               v  !s = wrap v s
+    aux TupInt8              v  !s = wrap v s
+    aux TupInt16             v  !s = wrap v s
+    aux TupInt32             v  !s = wrap v s
+    aux TupInt64             v  !s = wrap v s
+    aux TupWord              v  !s = wrap v s
+    aux TupWord8             v  !s = wrap v s
+    aux TupWord16            v  !s = wrap v s
+    aux TupWord32            v  !s = wrap v s
+    aux TupWord64            v  !s = wrap v s
+    aux TupHalf              v  !s = wrap v s
+    aux TupFloat             v  !s = wrap v s
+    aux TupDouble            v  !s = wrap v s
+    aux TupBool              v  !s = wrap v s
+    aux TupChar              v  !s = wrap v s
+    aux (TupVecInt n# tp)    v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecInt8 n# tp)   v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecInt16 n# tp)  v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecInt32 n# tp)  v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecInt64 n# tp)  v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecWord n# tp)   v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecWord8 n# tp)  v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecWord16 n# tp) v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecWord32 n# tp) v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecWord64 n# tp) v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecHalf n# tp)   v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecFloat n# tp)  v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecDouble n# tp) v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecBool n# tp)   v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupVecChar n# tp)   v  !s = aux (TupRsingle $ SingleScalarType tp) v (I# n# * s)
+    aux (TupRpair t1 t2) (v1, v2) !s = (aux t1 v1 s, aux t2 v2 s)
 
 
 -- | /O(1)/. Turn the Accelerate array into a collection of storable 'Vector's.
@@ -125,31 +137,45 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs 1)
 -- Data will be output in row-major order.
 --
 {-# INLINE toVectors #-}
-toVectors :: (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
-toVectors (Array sh adata) = aux arrayElt adata 1
+toVectors :: forall sh e. (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
+toVectors (Array (R.Array sh adata)) = aux (eltType @e) adata 1
   where
     {-# INLINE wrap #-}
     wrap :: Storable a => UniqueArray a -> Int -> Vector a
-    wrap ua k = unsafeFromForeignPtr0 (unsafeGetValue (uniqueArrayData ua)) (R.size sh * k)
+    wrap ua k = unsafeFromForeignPtr0 (unsafeGetValue (uniqueArrayData ua))
+                                      (R.size (shapeR @sh) sh * k)
 
     {-# INLINE aux #-}
-    aux :: ArrayEltR e -> ArrayData e -> Int -> Vectors e
-    aux ArrayEltRunit           AD_Unit         !_ = ()
-    aux ArrayEltRint            (AD_Int v)      !s = wrap v s
-    aux ArrayEltRint8           (AD_Int8 v)     !s = wrap v s
-    aux ArrayEltRint16          (AD_Int16 v)    !s = wrap v s
-    aux ArrayEltRint32          (AD_Int32 v)    !s = wrap v s
-    aux ArrayEltRint64          (AD_Int64 v)    !s = wrap v s
-    aux ArrayEltRword           (AD_Word v)     !s = wrap v s
-    aux ArrayEltRword8          (AD_Word8 v)    !s = wrap v s
-    aux ArrayEltRword16         (AD_Word16 v)   !s = wrap v s
-    aux ArrayEltRword32         (AD_Word32 v)   !s = wrap v s
-    aux ArrayEltRword64         (AD_Word64 v)   !s = wrap v s
-    aux ArrayEltRhalf           (AD_Half v)     !s = wrap v s
-    aux ArrayEltRfloat          (AD_Float v)    !s = wrap v s
-    aux ArrayEltRdouble         (AD_Double v)   !s = wrap v s
-    aux ArrayEltRbool           (AD_Bool v)     !s = wrap v s
-    aux ArrayEltRchar           (AD_Char v)     !s = wrap v s
-    aux (ArrayEltRvec ae)       (AD_Vec n# v)   !s = aux ae v (s * I# n#)
-    aux (ArrayEltRpair ae1 ae2) (AD_Pair v1 v2) !s = (aux ae1 v1 s, aux ae2 v2 s)
-
+    aux :: TupleType a -> ArrayData a -> Int -> Vectors a
+    aux TupRunit             ()  !_ = ()
+    aux TupInt               arr !s = wrap arr s
+    aux TupInt8              arr !s = wrap arr s
+    aux TupInt16             arr !s = wrap arr s
+    aux TupInt32             arr !s = wrap arr s
+    aux TupInt64             arr !s = wrap arr s
+    aux TupWord              arr !s = wrap arr s
+    aux TupWord8             arr !s = wrap arr s
+    aux TupWord16            arr !s = wrap arr s
+    aux TupWord32            arr !s = wrap arr s
+    aux TupWord64            arr !s = wrap arr s
+    aux TupHalf              arr !s = wrap arr s
+    aux TupFloat             arr !s = wrap arr s
+    aux TupDouble            arr !s = wrap arr s
+    aux TupBool              arr !s = wrap arr s
+    aux TupChar              arr !s = wrap arr s
+    aux (TupVecInt n# tp)    arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecInt8 n# tp)   arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecInt16 n# tp)  arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecInt32 n# tp)  arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecInt64 n# tp)  arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecWord n# tp)   arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecWord8 n# tp)  arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecWord16 n# tp) arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecWord32 n# tp) arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecWord64 n# tp) arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecHalf n# tp)   arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecFloat n# tp)  arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecDouble n# tp) arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecBool n# tp)   arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupVecChar n# tp)   arr !s = aux (TupRsingle $ SingleScalarType tp) arr (I# n# * s)
+    aux (TupRpair t1 t2) (a1, a2) !s = (aux t1 a1 s, aux t2 a2 s)
