@@ -1,7 +1,6 @@
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE MagicHash           #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TypeApplications     #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Foreign.ForeignPtr
 -- Copyright   : [2017..2019] The Accelerate Team
@@ -15,42 +14,25 @@
 module Data.Array.Accelerate.IO.Foreign.ForeignPtr
   where
 
-import Data.Array.Accelerate.Array.Data
-import Data.Array.Accelerate.Array.Sugar
+import Data.Array.Accelerate.Array.Data                             ( ArrayData, GArrayDataR )
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Lifetime
-import Data.Array.Accelerate.Type
+import Data.Array.Accelerate.Representation.Type
+import Data.Array.Accelerate.Sugar.Array
+import Data.Array.Accelerate.Sugar.Elt
+import Data.Array.Accelerate.Sugar.Shape
+import qualified Data.Array.Accelerate.Representation.Array         as R
+
+import Data.Array.Accelerate.IO.Foreign.Internal
 
 import Foreign.ForeignPtr
 import System.IO.Unsafe
-
-import GHC.Base
-import GHC.TypeLits
 
 
 -- | A family of types which represent a collection of 'ForeignPtr's. The
 -- structure of the collection depends on the element type @e@.
 --
-type family ForeignPtrs e
-
-type instance ForeignPtrs ()        = ()
-type instance ForeignPtrs Int       = ForeignPtr Int
-type instance ForeignPtrs Int8      = ForeignPtr Int8
-type instance ForeignPtrs Int16     = ForeignPtr Int16
-type instance ForeignPtrs Int32     = ForeignPtr Int32
-type instance ForeignPtrs Int64     = ForeignPtr Int64
-type instance ForeignPtrs Word      = ForeignPtr Word
-type instance ForeignPtrs Word8     = ForeignPtr Word8
-type instance ForeignPtrs Word16    = ForeignPtr Word16
-type instance ForeignPtrs Word32    = ForeignPtr Word32
-type instance ForeignPtrs Word64    = ForeignPtr Word64
-type instance ForeignPtrs Half      = ForeignPtr Half
-type instance ForeignPtrs Float     = ForeignPtr Float
-type instance ForeignPtrs Double    = ForeignPtr Double
-type instance ForeignPtrs Bool      = ForeignPtr Word8
-type instance ForeignPtrs Char      = ForeignPtr Char
-type instance ForeignPtrs (Vec n a) = ForeignPtrs a
-type instance ForeignPtrs (a,b)     = (ForeignPtrs a, ForeignPtrs b)
+type ForeignPtrs e = GArrayDataR ForeignPtr e
 
 
 -- | /O(1)/. Treat the set of 'ForeignPtrs' as an Accelerate array. The type of
@@ -67,35 +49,15 @@ type instance ForeignPtrs (a,b)     = (ForeignPtrs a, ForeignPtrs b)
 -- @since 1.1.0.0@
 --
 {-# INLINE fromForeignPtrs #-}
-fromForeignPtrs :: (Shape sh, Elt e) => sh -> ForeignPtrs (EltRepr e) -> Array sh e
-fromForeignPtrs sh fps = Array (fromElt sh) (aux arrayElt fps)
+fromForeignPtrs :: forall sh e. (Shape sh, Elt e) => sh -> ForeignPtrs (EltR e) -> Array sh e
+fromForeignPtrs sh fps = Array (R.Array (fromElt sh) (go (eltR @e) fps))
   where
-    wrap :: (UniqueArray e -> r) -> ForeignPtr e -> r
-    wrap k fp = k (unsafePerformIO $ newUniqueArray fp)
-
-    vec :: forall n e. KnownNat n => ArrayData e -> ArrayData (Vec n e)
-    vec = let !(I# n#) = fromInteger (natVal' (proxy# :: Proxy# n))
-          in  AD_Vec n#
-
-    aux :: ArrayEltR e -> ForeignPtrs e -> ArrayData e
-    aux ArrayEltRunit           = const AD_Unit
-    aux ArrayEltRint            = wrap AD_Int
-    aux ArrayEltRint8           = wrap AD_Int8
-    aux ArrayEltRint16          = wrap AD_Int16
-    aux ArrayEltRint32          = wrap AD_Int32
-    aux ArrayEltRint64          = wrap AD_Int64
-    aux ArrayEltRword           = wrap AD_Word
-    aux ArrayEltRword8          = wrap AD_Word8
-    aux ArrayEltRword16         = wrap AD_Word16
-    aux ArrayEltRword32         = wrap AD_Word32
-    aux ArrayEltRword64         = wrap AD_Word64
-    aux ArrayEltRhalf           = wrap AD_Half
-    aux ArrayEltRfloat          = wrap AD_Float
-    aux ArrayEltRdouble         = wrap AD_Double
-    aux ArrayEltRbool           = wrap AD_Bool
-    aux ArrayEltRchar           = wrap AD_Char
-    aux (ArrayEltRvec ae)       = \v       -> vec (aux ae v)
-    aux (ArrayEltRpair ae1 ae2) = \(v1,v2) -> AD_Pair (aux ae1 v1) (aux ae2 v2)
+    go :: TypeR a -> ForeignPtrs a -> ArrayData a
+    go TupRunit           ()       = ()
+    go (TupRpair aR1 aR2) (a1, a2) = (go aR1 a1, go aR2 a2)
+    go (TupRsingle t)     a
+      | ScalarArrayDict{} <- scalarArrayDict t
+      = unsafePerformIO $ newUniqueArray a
 
 
 -- | /O(1)/. Yield the 'ForeignPtr's underlying the given Accelerate 'Array'.
@@ -106,29 +68,13 @@ fromForeignPtrs sh fps = Array (fromElt sh) (aux arrayElt fps)
 -- @since 1.1.0.0@
 --
 {-# INLINE toForeignPtrs #-}
-toForeignPtrs :: (Shape sh, Elt e) => Array sh e -> ForeignPtrs (EltRepr e)
-toForeignPtrs (Array _ adata) = aux arrayElt adata
+toForeignPtrs :: forall sh e. (Shape sh, Elt e) => Array sh e -> ForeignPtrs (EltR e)
+toForeignPtrs (Array (R.Array _ adata)) = go (eltR @e) adata
   where
-    wrap :: UniqueArray a -> ForeignPtr a
-    wrap ua = unsafeGetValue (uniqueArrayData ua)
-
-    aux :: ArrayEltR e -> ArrayData e -> ForeignPtrs e
-    aux ArrayEltRunit           AD_Unit         = ()
-    aux ArrayEltRint            (AD_Int s)      = wrap s
-    aux ArrayEltRint8           (AD_Int8 s)     = wrap s
-    aux ArrayEltRint16          (AD_Int16 s)    = wrap s
-    aux ArrayEltRint32          (AD_Int32 s)    = wrap s
-    aux ArrayEltRint64          (AD_Int64 s)    = wrap s
-    aux ArrayEltRword           (AD_Word s)     = wrap s
-    aux ArrayEltRword8          (AD_Word8 s)    = wrap s
-    aux ArrayEltRword16         (AD_Word16 s)   = wrap s
-    aux ArrayEltRword32         (AD_Word32 s)   = wrap s
-    aux ArrayEltRword64         (AD_Word64 s)   = wrap s
-    aux ArrayEltRhalf           (AD_Half s)     = wrap s
-    aux ArrayEltRfloat          (AD_Float s)    = wrap s
-    aux ArrayEltRdouble         (AD_Double s)   = wrap s
-    aux ArrayEltRbool           (AD_Bool s)     = wrap s
-    aux ArrayEltRchar           (AD_Char s)     = wrap s
-    aux (ArrayEltRvec ae)       (AD_Vec _ s)    = aux ae s
-    aux (ArrayEltRpair ae1 ae2) (AD_Pair s1 s2) = (aux ae1 s1, aux ae2 s2)
+    go :: TypeR a -> ArrayData a -> ForeignPtrs a
+    go TupRunit           ()       = ()
+    go (TupRpair aR1 aR2) (a1, a2) = (go aR1 a1, go aR2 a2)
+    go (TupRsingle t)     a
+      | ScalarArrayDict{} <- scalarArrayDict t
+      = unsafeGetValue (uniqueArrayData a)
 

@@ -1,7 +1,6 @@
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE MagicHash           #-}
+{-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeApplications    #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Foreign.Ptr
 -- Copyright   : [2017..2019] The Accelerate Team
@@ -15,23 +14,27 @@
 module Data.Array.Accelerate.IO.Foreign.Ptr
   where
 
-import Data.Array.Accelerate.Array.Data
-import Data.Array.Accelerate.Array.Sugar
+import Data.Array.Accelerate.Array.Data                             ( ArrayData, GArrayDataR )
 import Data.Array.Accelerate.Array.Unique
-import Data.Array.Accelerate.Type
+import Data.Array.Accelerate.Sugar.Array
+import Data.Array.Accelerate.Sugar.Elt
+import Data.Array.Accelerate.Sugar.Shape
+import Data.Array.Accelerate.Lifetime
+import Data.Array.Accelerate.Representation.Type
+import qualified Data.Array.Accelerate.Representation.Array         as R
+
+import Data.Array.Accelerate.IO.Foreign.Internal
 
 import Foreign.Ptr
 import Foreign.ForeignPtr
+import Foreign.ForeignPtr.Unsafe
 import System.IO.Unsafe
-
-import GHC.Base
-import GHC.TypeLits
 
 
 -- | A family of types which represent a collection of 'Ptr's. The
 -- structure of the collection depends on the element type @e@.
 --
-type Ptrs e = ArrayPtrs e
+type Ptrs e = GArrayDataR Ptr e
 
 
 -- | /O(1)/. Treat the set of 'Ptrs' as an Accelerate array. The type of
@@ -51,35 +54,15 @@ type Ptrs e = ArrayPtrs e
 -- @since 1.1.0.0@
 --
 {-# INLINE fromPtrs #-}
-fromPtrs :: (Shape sh, Elt e) => sh -> Ptrs (EltRepr e) -> Array sh e
-fromPtrs sh ps = Array (fromElt sh) (aux arrayElt ps)
+fromPtrs :: forall sh e. (Shape sh, Elt e) => sh -> Ptrs (EltR e) -> Array sh e
+fromPtrs sh ps = Array (R.Array (fromElt sh) (go (eltR @e) ps))
   where
-    wrap :: (UniqueArray e -> r) -> Ptr e -> r
-    wrap k p = k (unsafePerformIO $ newUniqueArray =<< newForeignPtr_ p)
-
-    vec :: forall n e. KnownNat n => ArrayData e -> ArrayData (Vec n e)
-    vec = let !(I# n#) = fromInteger (natVal' (proxy# :: Proxy# n))
-          in  AD_Vec n#
-
-    aux :: ArrayEltR e -> Ptrs e -> ArrayData e
-    aux ArrayEltRunit           = const AD_Unit
-    aux ArrayEltRint            = wrap AD_Int
-    aux ArrayEltRint8           = wrap AD_Int8
-    aux ArrayEltRint16          = wrap AD_Int16
-    aux ArrayEltRint32          = wrap AD_Int32
-    aux ArrayEltRint64          = wrap AD_Int64
-    aux ArrayEltRword           = wrap AD_Word
-    aux ArrayEltRword8          = wrap AD_Word8
-    aux ArrayEltRword16         = wrap AD_Word16
-    aux ArrayEltRword32         = wrap AD_Word32
-    aux ArrayEltRword64         = wrap AD_Word64
-    aux ArrayEltRhalf           = wrap AD_Half
-    aux ArrayEltRfloat          = wrap AD_Float
-    aux ArrayEltRdouble         = wrap AD_Double
-    aux ArrayEltRbool           = wrap AD_Bool
-    aux ArrayEltRchar           = wrap AD_Char
-    aux (ArrayEltRvec ae)       = \v       -> vec (aux ae v)
-    aux (ArrayEltRpair ae1 ae2) = \(v1,v2) -> AD_Pair (aux ae1 v1) (aux ae2 v2)
+    go :: TypeR a -> Ptrs a -> ArrayData a
+    go TupRunit           ()       = ()
+    go (TupRpair aR1 aR2) (a1, a2) = (go aR1 a1, go aR2 a2)
+    go (TupRsingle t)     p
+      | ScalarArrayDict{} <- scalarArrayDict t
+      = unsafePerformIO $ newUniqueArray =<< newForeignPtr_ p
 
 
 -- | /O(1)/. Yield the underlying 'Ptrs' backing the given Accelerate array. The
@@ -90,6 +73,13 @@ fromPtrs sh ps = Array (fromElt sh) (aux arrayElt ps)
 -- @since 1.1.0.0@
 --
 {-# INLINE toPtrs #-}
-toPtrs :: (Shape sh, Elt e) => Array sh e -> Ptrs (EltRepr e)
-toPtrs (Array _ adata) = ptrsOfArrayData adata
+toPtrs :: forall sh e. (Shape sh, Elt e) => Array sh e -> Ptrs (EltR e)
+toPtrs (Array (R.Array _ adata)) = go (eltR @e) adata
+  where
+    go :: TypeR a -> ArrayData a -> Ptrs a
+    go TupRunit           ()       = ()
+    go (TupRpair aR1 aR2) (a1, a2) = (go aR1 a1, go aR2 a2)
+    go (TupRsingle t)     a
+      | ScalarArrayDict{} <- scalarArrayDict t
+      = unsafeForeignPtrToPtr (unsafeGetValue (uniqueArrayData a))
 
