@@ -1,7 +1,6 @@
-{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE CPP                 #-}
-{-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE ViewPatterns        #-}
 -- |
@@ -16,19 +15,21 @@
 -- Conversion between strict 'ByteString's and Accelerate 'Array's.
 --
 
-module Data.Array.Accelerate.IO.Data.ByteString (
+module Data.Array.Accelerate.IO.Data.ByteString
+  where
 
-  ByteStrings,
-  fromByteStrings, toByteStrings,
-
-) where
-
-import Data.Array.Accelerate.Array.Data
-import Data.Array.Accelerate.Array.Sugar
+import Data.Array.Accelerate.Array.Data                             -- ( ArrayData, GArrayDataR, ScalarArrayDataR )
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Lifetime
+import Data.Array.Accelerate.Sugar.Array
+import Data.Array.Accelerate.Sugar.Elt
+import Data.Array.Accelerate.Sugar.Shape
+import Data.Array.Accelerate.Representation.Type
 import Data.Array.Accelerate.Type
-import qualified Data.Array.Accelerate.Array.Representation         as R
+import qualified Data.Array.Accelerate.Representation.Array         as R
+import qualified Data.Array.Accelerate.Representation.Shape         as R
+
+import Data.Primitive.Vec
 
 import Data.ByteString                                              as B
 import Data.ByteString.Internal                                     as B
@@ -39,33 +40,30 @@ import System.IO.Unsafe
 #if !MIN_VERSION_base(4,10,0)
 import GHC.ForeignPtr
 #endif
-import GHC.Base
-import GHC.TypeLits
 
 
 -- | A family of types that represents a collection of 'ByteString's. The
 -- structure of the collection depends on the element type @e@.
 --
-type family ByteStrings e
-
-type instance ByteStrings ()        = ()
-type instance ByteStrings Int       = ByteString
-type instance ByteStrings Int8      = ByteString
-type instance ByteStrings Int16     = ByteString
-type instance ByteStrings Int32     = ByteString
-type instance ByteStrings Int64     = ByteString
-type instance ByteStrings Word      = ByteString
-type instance ByteStrings Word8     = ByteString
-type instance ByteStrings Word16    = ByteString
-type instance ByteStrings Word32    = ByteString
-type instance ByteStrings Word64    = ByteString
-type instance ByteStrings Half      = ByteString
-type instance ByteStrings Float     = ByteString
-type instance ByteStrings Double    = ByteString
-type instance ByteStrings Bool      = ByteString
-type instance ByteStrings Char      = ByteString
-type instance ByteStrings (Vec n a) = ByteStrings a
-type instance ByteStrings (a,b)     = (ByteStrings a, ByteStrings b)
+type family ByteStrings e where
+  ByteStrings ()        = ()
+  ByteStrings Int       = ByteString
+  ByteStrings Int8      = ByteString
+  ByteStrings Int16     = ByteString
+  ByteStrings Int32     = ByteString
+  ByteStrings Int64     = ByteString
+  ByteStrings Word      = ByteString
+  ByteStrings Word8     = ByteString
+  ByteStrings Word16    = ByteString
+  ByteStrings Word32    = ByteString
+  ByteStrings Word64    = ByteString
+  ByteStrings Half      = ByteString
+  ByteStrings Float     = ByteString
+  ByteStrings Double    = ByteString
+  ByteStrings Bool      = ByteString
+  ByteStrings Char      = ByteString
+  ByteStrings (Vec n a) = ByteStrings a
+  ByteStrings (a,b)     = (ByteStrings a, ByteStrings b)
 
 
 -- | /O(1)/. Treat a set of strict 'ByteStrings' as an Accelerate array. The
@@ -80,36 +78,50 @@ type instance ByteStrings (a,b)     = (ByteStrings a, ByteStrings b)
 -- @since 1.1.0.0@
 --
 {-# INLINE fromByteStrings #-}
-fromByteStrings :: (Shape sh, Elt e) => sh -> ByteStrings (EltRepr e) -> Array sh e
-fromByteStrings sh bs = Array (fromElt sh) (aux arrayElt bs)
+fromByteStrings :: forall sh e. (Shape sh, Elt e) => sh -> ByteStrings (EltR e) -> Array sh e
+fromByteStrings sh bs = Array (R.Array (fromElt sh) (tuple (eltR @e) bs))
   where
-    wrap :: (UniqueArray e -> r) -> ByteString -> r
-    wrap k (B.toForeignPtr -> (ps,s,_)) =
-      k (unsafePerformIO $ newUniqueArray (castForeignPtr (plusForeignPtr ps s)))
+    wrap :: ByteString -> UniqueArray a
+    wrap (B.toForeignPtr -> (ps,s,_)) =
+      unsafePerformIO $ newUniqueArray (castForeignPtr (plusForeignPtr ps s))
 
-    vec :: forall n e. KnownNat n => ArrayData e -> ArrayData (Vec n e)
-    vec = let !(I# n#) = fromInteger (natVal' (proxy# :: Proxy# n))
-          in  AD_Vec n#
+    tuple :: TypeR a -> ByteStrings a -> ArrayData a
+    tuple TupRunit           ()       = ()
+    tuple (TupRpair aR1 aR2) (a1, a2) = (tuple aR1 a1, tuple aR2 a2)
+    tuple (TupRsingle t)     a        = scalar t a
 
-    aux :: ArrayEltR e -> ByteStrings e -> ArrayData e
-    aux ArrayEltRunit           = const AD_Unit
-    aux ArrayEltRint            = wrap AD_Int
-    aux ArrayEltRint8           = wrap AD_Int8
-    aux ArrayEltRint16          = wrap AD_Int16
-    aux ArrayEltRint32          = wrap AD_Int32
-    aux ArrayEltRint64          = wrap AD_Int64
-    aux ArrayEltRword           = wrap AD_Word
-    aux ArrayEltRword8          = wrap AD_Word8
-    aux ArrayEltRword16         = wrap AD_Word16
-    aux ArrayEltRword32         = wrap AD_Word32
-    aux ArrayEltRword64         = wrap AD_Word64
-    aux ArrayEltRhalf           = wrap AD_Half
-    aux ArrayEltRfloat          = wrap AD_Float
-    aux ArrayEltRdouble         = wrap AD_Double
-    aux ArrayEltRbool           = wrap AD_Bool
-    aux ArrayEltRchar           = wrap AD_Char
-    aux (ArrayEltRvec ae)       = \v       -> vec (aux ae v)
-    aux (ArrayEltRpair ae1 ae2) = \(v1,v2) -> AD_Pair (aux ae1 v1) (aux ae2 v2)
+    scalar :: ScalarType a -> ByteStrings a -> ArrayData a
+    scalar (SingleScalarType t) = single t
+    scalar (VectorScalarType t) = vector t
+
+    vector :: VectorType a -> ByteStrings a -> ArrayData a
+    vector (VectorType _ t)
+      | SingleArrayDict <- singleArrayDict t
+      = single t
+
+    single :: SingleType a -> ByteStrings a -> ArrayData a
+    single (NumSingleType t) = num t
+
+    num :: NumType a -> ByteStrings a -> ArrayData a
+    num (IntegralNumType t) = integral t
+    num (FloatingNumType t) = floating t
+
+    integral :: IntegralType a -> ByteStrings a -> ArrayData a
+    integral TypeInt    = wrap
+    integral TypeInt8   = wrap
+    integral TypeInt16  = wrap
+    integral TypeInt32  = wrap
+    integral TypeInt64  = wrap
+    integral TypeWord   = wrap
+    integral TypeWord8  = wrap
+    integral TypeWord16 = wrap
+    integral TypeWord32 = wrap
+    integral TypeWord64 = wrap
+
+    floating :: FloatingType a -> ByteStrings a -> ArrayData a
+    floating TypeHalf   = wrap
+    floating TypeFloat  = wrap
+    floating TypeDouble = wrap
 
 
 -- | /O(1)/. Convert an Accelerate 'Array' into a collection of strict
@@ -121,32 +133,50 @@ fromByteStrings sh bs = Array (fromElt sh) (aux arrayElt bs)
 -- @since 1.1.0.0@
 --
 {-# INLINE toByteStrings #-}
-toByteStrings :: (Shape sh, Elt e) => Array sh e -> ByteStrings (EltRepr e)
-toByteStrings (Array sh adata) = aux arrayElt adata 1
+toByteStrings :: forall sh e. (Shape sh, Elt e) => Array sh e -> ByteStrings (EltR e)
+toByteStrings (Array (R.Array sh adata)) = tuple (eltR @e) adata
   where
     wrap :: forall a. Storable a => UniqueArray a -> Int -> ByteString
     wrap (unsafeGetValue . uniqueArrayData -> fp) k =
-      B.fromForeignPtr (castForeignPtr fp) 0 (R.size sh * k * sizeOf (undefined::a))
+      B.fromForeignPtr (castForeignPtr fp) 0 (R.size (shapeR @sh) sh * k * sizeOf (undefined::a))
 
-    aux :: ArrayEltR e -> ArrayData e -> Int -> ByteStrings e
-    aux ArrayEltRunit           AD_Unit         !_ = ()
-    aux ArrayEltRint            (AD_Int s)      !k = wrap s k
-    aux ArrayEltRint8           (AD_Int8 s)     !k = wrap s k
-    aux ArrayEltRint16          (AD_Int16 s)    !k = wrap s k
-    aux ArrayEltRint32          (AD_Int32 s)    !k = wrap s k
-    aux ArrayEltRint64          (AD_Int64 s)    !k = wrap s k
-    aux ArrayEltRword           (AD_Word s)     !k = wrap s k
-    aux ArrayEltRword8          (AD_Word8 s)    !k = wrap s k
-    aux ArrayEltRword16         (AD_Word16 s)   !k = wrap s k
-    aux ArrayEltRword32         (AD_Word32 s)   !k = wrap s k
-    aux ArrayEltRword64         (AD_Word64 s)   !k = wrap s k
-    aux ArrayEltRhalf           (AD_Half s)     !k = wrap s k
-    aux ArrayEltRfloat          (AD_Float s)    !k = wrap s k
-    aux ArrayEltRdouble         (AD_Double s)   !k = wrap s k
-    aux ArrayEltRbool           (AD_Bool s)     !k = wrap s k
-    aux ArrayEltRchar           (AD_Char s)     !k = wrap s k
-    aux (ArrayEltRvec ae)       (AD_Vec n# s)   !k = aux ae s (k * I# n#)
-    aux (ArrayEltRpair ae1 ae2) (AD_Pair s1 s2) !k = (aux ae1 s1 k, aux ae2 s2 k)
+    tuple :: TypeR a -> ArrayData a -> ByteStrings a
+    tuple TupRunit           ()       = ()
+    tuple (TupRpair aR1 aR2) (a1, a2) = (tuple aR1 a1, tuple aR2 a2)
+    tuple (TupRsingle t)     a        = scalar t a 1
+
+    scalar :: ScalarType a -> ArrayData a -> Int -> ByteStrings a
+    scalar (SingleScalarType t) = single t
+    scalar (VectorScalarType t) = vector t
+
+    vector :: VectorType a -> ArrayData a -> Int -> ByteStrings a
+    vector (VectorType w t) a _
+      | SingleArrayDict <- singleArrayDict t
+      = single t a w
+
+    single :: SingleType a -> ArrayData a -> Int -> ByteStrings a
+    single (NumSingleType t) = num t
+
+    num :: NumType a -> ArrayData a -> Int -> ByteStrings a
+    num (IntegralNumType t) = integral t
+    num (FloatingNumType t) = floating t
+
+    integral :: IntegralType a -> ArrayData a -> Int -> ByteStrings a
+    integral TypeInt    = wrap
+    integral TypeInt8   = wrap
+    integral TypeInt16  = wrap
+    integral TypeInt32  = wrap
+    integral TypeInt64  = wrap
+    integral TypeWord   = wrap
+    integral TypeWord8  = wrap
+    integral TypeWord16 = wrap
+    integral TypeWord32 = wrap
+    integral TypeWord64 = wrap
+
+    floating :: FloatingType a -> ArrayData a -> Int -> ByteStrings a
+    floating TypeHalf   = wrap
+    floating TypeFloat  = wrap
+    floating TypeDouble = wrap
 
 #if !MIN_VERSION_base(4,10,0)
 plusForeignPtr :: ForeignPtr a -> Int -> ForeignPtr b
