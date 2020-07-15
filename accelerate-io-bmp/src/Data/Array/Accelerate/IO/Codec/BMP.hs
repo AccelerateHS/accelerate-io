@@ -25,8 +25,9 @@ module Data.Array.Accelerate.IO.Codec.BMP (
 import Data.Word
 import Codec.BMP
 
-import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.IO.Data.ByteString
+import Data.Array.Accelerate.Sugar.Array
+import Data.Array.Accelerate.Sugar.Shape
 
 
 -- | Packed RGBA pixel data
