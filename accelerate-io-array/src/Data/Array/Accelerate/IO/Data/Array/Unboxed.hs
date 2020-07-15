@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- |
@@ -26,12 +25,15 @@ module Data.Array.Accelerate.IO.Data.Array.Unboxed (
 ) where
 
 import Data.Array.Accelerate.Array.Data
-import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Error
 import Data.Array.Accelerate.Lifetime
+import Data.Array.Accelerate.Representation.Type
+import Data.Array.Accelerate.Sugar.Array
+import Data.Array.Accelerate.Sugar.Elt
+import Data.Array.Accelerate.Sugar.Shape
 import Data.Array.Accelerate.Type
-import qualified Data.Array.Accelerate.Array.Representation         as R
+import qualified Data.Array.Accelerate.Representation.Array         as R
 
 import Data.Array.Accelerate.IO.Data.Array.Internal
 import Data.Array.Accelerate.IO.Data.Primitive.ByteArray
@@ -57,32 +59,48 @@ import System.IO.Unsafe
 --
 {-# INLINE fromUArray #-}
 fromUArray
-    :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray UArray e, Ix ix, Shape sh, Elt ix, Elt e)
+    :: forall ix sh e. (HasCallStack, IxShapeRepr (EltR ix) ~ EltR sh, IArray UArray e, Ix ix, Shape sh, Elt ix, Elt e)
     => UArray ix e
     -> Array sh e
-fromUArray (UArray lo hi n ba#) = Array (fromElt sh) (aux (arrayElt :: ArrayEltR (EltRepr e)))
+fromUArray (UArray lo hi n ba#) = Array (R.Array (fromElt sh) (tuple (eltR @e)))
   where
     sh = rangeToShape (toIxShapeRepr lo, toIxShapeRepr hi) :: sh
 
-    wrap :: forall a. Prim a => (UniqueArray a -> ArrayData a) -> ArrayData a
-    wrap k = k $ unsafePerformIO (newUniqueArray =<< foreignPtrOfByteArray 0 (n * sizeOf (undefined::a)) (ByteArray ba#))
+    wrap :: forall a. Prim a => UniqueArray a
+    wrap = unsafePerformIO (newUniqueArray =<< foreignPtrOfByteArray 0 (n * sizeOf (undefined::a)) (ByteArray ba#))
 
-    aux :: ArrayEltR a -> ArrayData a
-    aux ArrayEltRint    = wrap AD_Int
-    aux ArrayEltRint8   = wrap AD_Int8
-    aux ArrayEltRint16  = wrap AD_Int16
-    aux ArrayEltRint32  = wrap AD_Int32
-    aux ArrayEltRint64  = wrap AD_Int64
-    aux ArrayEltRword   = wrap AD_Word
-    aux ArrayEltRword8  = wrap AD_Word8
-    aux ArrayEltRword16 = wrap AD_Word16
-    aux ArrayEltRword32 = wrap AD_Word32
-    aux ArrayEltRword64 = wrap AD_Word64
-    aux ArrayEltRfloat  = wrap AD_Float
-    aux ArrayEltRdouble = wrap AD_Double
-    aux ArrayEltRchar   = wrap AD_Char
-    aux ArrayEltRbool   = $internalError "fromUArray" "TODO: Bool"  -- need to unpack bit array
-    aux _               = $internalError "fromUArray" "unsupported type"
+    tuple :: TypeR a -> ArrayData a
+    tuple TupRunit           = ()
+    tuple (TupRpair aR1 aR2) = (tuple aR1, tuple aR2)
+    tuple (TupRsingle t)     = scalar t
+
+    scalar :: ScalarType t -> ArrayData t
+    scalar (SingleScalarType t) = single t
+    scalar (VectorScalarType _) = internalError "unsupported type"
+
+    single :: SingleType t -> ArrayData t
+    single (NumSingleType t) = num t
+
+    num :: NumType t -> ArrayData t
+    num (IntegralNumType t) = integral t
+    num (FloatingNumType t) = floating t
+
+    integral :: IntegralType t -> ArrayData t
+    integral TypeInt    = wrap
+    integral TypeInt8   = wrap
+    integral TypeInt16  = wrap
+    integral TypeInt32  = wrap
+    integral TypeInt64  = wrap
+    integral TypeWord   = wrap
+    integral TypeWord8  = wrap
+    integral TypeWord16 = wrap
+    integral TypeWord32 = wrap
+    integral TypeWord64 = wrap
+
+    floating :: FloatingType t -> ArrayData t
+    floating TypeHalf   = wrap
+    floating TypeFloat  = wrap
+    floating TypeDouble = wrap
 
 
 -- | /O(1)/ (typically). Convert an Accelerate 'Array' to an unboxed 'UArray'.
@@ -97,19 +115,19 @@ fromUArray (UArray lo hi n ba#) = Array (fromElt sh) (aux (arrayElt :: ArrayEltR
 --
 {-# INLINE toUArray #-}
 toUArray
-    :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray UArray e, Ix ix, Shape sh, Elt e, Elt ix)
+    :: forall ix sh e. (HasCallStack, IxShapeRepr (EltR ix) ~ EltR sh, IArray UArray e, Ix ix, Shape sh, Elt e, Elt ix)
     => Maybe ix         -- ^ if 'Just' this is the index lower bound, otherwise the array is indexed from zero
     -> Array sh e
     -> UArray ix e
-toUArray mix0 arr@(Array sh adata) =
+toUArray mix0 arr@(Array (R.Array _ adata)) =
   case ba of
     ByteArray ba# -> UArray lo hi n ba#
   where
-    n       = R.size sh
+    n       = size (shape arr)
     bnds    = shapeToRange (shape arr)
     lo      = fromIxShapeRepr (offset (fst bnds))
     hi      = fromIxShapeRepr (offset (snd bnds))
-    ba      = aux arrayElt adata
+    ba      = tuple (eltR @e) adata
 
     offset :: sh -> sh
     offset ix =
@@ -118,32 +136,47 @@ toUArray mix0 arr@(Array sh adata) =
         Just ix0 -> offset' ix0 ix
 
     offset' :: ix -> sh -> sh
-    offset' ix0 = toElt . go (eltType @sh) (fromElt (toIxShapeRepr ix0 :: sh)) . fromElt
+    offset' ix0 = toElt . go (eltR @sh) (fromElt (toIxShapeRepr ix0 :: sh)) . fromElt
       where
-        go :: TupleType sh' -> sh' -> sh' -> sh'
-        go TypeRunit                                                                    ()       ()    = ()
-        go (TypeRpair tl tr)                                                            (l0, r0) (l,r) = (go tl l0 l, go tr r0 r)
-        go (TypeRscalar (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) i0       i     = i0+i
+        go :: TypeR sh' -> sh' -> sh' -> sh'
+        go TupRunit                                                                    ()       ()    = ()
+        go (TupRpair tl tr)                                                            (l0, r0) (l,r) = (go tl l0 l, go tr r0 r)
+        go (TupRsingle (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) i0       i     = i0+i
         go _ _ _ =
-          $internalError "toUArray" "error in index offset"
+          internalError "error in index offset"
 
     wrap :: forall a. Prim a => UniqueArray a -> ByteArray
     wrap ua = unsafePerformIO $ byteArrayOfForeignPtr (n * sizeOf (undefined::a)) (unsafeGetValue (uniqueArrayData ua))
 
-    aux :: ArrayEltR a -> ArrayData a -> ByteArray
-    aux ArrayEltRint    (AD_Int v)    = wrap v
-    aux ArrayEltRint8   (AD_Int8 v)   = wrap v
-    aux ArrayEltRint16  (AD_Int16 v)  = wrap v
-    aux ArrayEltRint32  (AD_Int32 v)  = wrap v
-    aux ArrayEltRint64  (AD_Int64 v)  = wrap v
-    aux ArrayEltRword   (AD_Word v)   = wrap v
-    aux ArrayEltRword8  (AD_Word8 v)  = wrap v
-    aux ArrayEltRword16 (AD_Word16 v) = wrap v
-    aux ArrayEltRword32 (AD_Word32 v) = wrap v
-    aux ArrayEltRword64 (AD_Word64 v) = wrap v
-    aux ArrayEltRfloat  (AD_Float v)  = wrap v
-    aux ArrayEltRdouble (AD_Double v) = wrap v
-    aux ArrayEltRchar   (AD_Char v)   = wrap v
-    aux ArrayEltRbool   (AD_Bool _)   = $internalError "toUArray" "TODO: Bool"  -- need to pack bit array
-    aux _ _ = $internalError "toUArray" "unsupported type"
+    tuple :: TypeR a -> ArrayData a -> ByteArray
+    tuple (TupRsingle t) = scalar t
+    tuple _              = internalError "unsupported type"
+
+    scalar :: ScalarType t -> ArrayData t -> ByteArray
+    scalar (SingleScalarType t) = single t
+    scalar (VectorScalarType _) = internalError "unsupported type"
+
+    single :: SingleType t -> ArrayData t -> ByteArray
+    single (NumSingleType t) = num t
+
+    num :: NumType t -> ArrayData t -> ByteArray
+    num (IntegralNumType t) = integral t
+    num (FloatingNumType t) = floating t
+
+    integral :: IntegralType t -> ArrayData t -> ByteArray
+    integral TypeInt    = wrap
+    integral TypeInt8   = wrap
+    integral TypeInt16  = wrap
+    integral TypeInt32  = wrap
+    integral TypeInt64  = wrap
+    integral TypeWord   = wrap
+    integral TypeWord8  = wrap
+    integral TypeWord16 = wrap
+    integral TypeWord32 = wrap
+    integral TypeWord64 = wrap
+
+    floating :: FloatingType t -> ArrayData t -> ByteArray
+    floating TypeHalf   = wrap
+    floating TypeFloat  = wrap
+    floating TypeDouble = wrap
 

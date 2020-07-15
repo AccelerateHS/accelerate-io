@@ -1,5 +1,4 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- |
@@ -22,9 +21,12 @@ module Data.Array.Accelerate.IO.Data.Array.IArray (
 
 ) where
 
-import Data.Array.Accelerate.Array.Sugar
-import Data.Array.Accelerate.Type
 import Data.Array.Accelerate.Error
+import Data.Array.Accelerate.Representation.Type
+import Data.Array.Accelerate.Sugar.Array
+import Data.Array.Accelerate.Sugar.Elt
+import Data.Array.Accelerate.Sugar.Shape
+import Data.Array.Accelerate.Type
 
 import Data.Array.Accelerate.IO.Data.Array.Internal
 
@@ -46,7 +48,7 @@ import qualified Data.Array.IArray                              as IArray
 --
 {-# INLINE fromIArray #-}
 fromIArray
-    :: (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray a e, IArray.Ix ix, Shape sh, Elt ix, Elt e)
+    :: (HasCallStack, IxShapeRepr (EltR ix) ~ EltR sh, IArray a e, IArray.Ix ix, Shape sh, Elt ix, Elt e)
     => a ix e
     -> Array sh e
 fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr (offset lo' ix))
@@ -61,14 +63,14 @@ fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr (offset 
     -- index range of the IArray
     --
     offset :: forall sh. Shape sh => sh -> sh -> sh
-    offset ix0 ix = toElt $ go (eltType @sh) (fromElt ix0) (fromElt ix)
+    offset ix0 ix = toElt $ go (eltR @sh) (fromElt ix0) (fromElt ix)
       where
-        go :: TupleType ix -> ix -> ix -> ix
-        go TypeRunit                                                                    ()       ()    = ()
-        go (TypeRpair tl tr)                                                            (l0, r0) (l,r) = (go tl l0 l, go tr r0 r)
-        go (TypeRscalar (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) i0       i     = i0+i
+        go :: TypeR ix -> ix -> ix -> ix
+        go TupRunit                                                                    ()       ()    = ()
+        go (TupRpair tl tr)                                                            (l0, r0) (l,r) = (go tl l0 l, go tr r0 r)
+        go (TupRsingle (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) i0       i     = i0+i
         go _ _ _ =
-          $internalError "fromIArray" "error in index offset"
+          internalError "error in index offset"
 
 
 -- | /O(n)/. Convert an Accelerate 'Array' to an 'IArray'.
@@ -77,7 +79,7 @@ fromIArray iarr = fromFunction sh (\ix -> iarr IArray.! fromIxShapeRepr (offset 
 --
 {-# INLINE toIArray #-}
 toIArray
-    :: forall ix sh a e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, IArray a e, IArray.Ix ix, Shape sh, Elt e, Elt ix)
+    :: forall ix sh a e. (HasCallStack, IxShapeRepr (EltR ix) ~ EltR sh, IArray a e, IArray.Ix ix, Shape sh, Elt e, Elt ix)
     => Maybe ix           -- ^ if 'Just' this as the index lower bound, otherwise the array is indexed from zero
     -> Array sh e
     -> a ix e
@@ -96,13 +98,13 @@ toIArray mix0 arr = IArray.array bnds0 [(offset ix, arr ! toIxShapeRepr ix) | ix
     offset' :: ix -> ix -> ix
     offset' ix0 ix
       = fromIxShapeRepr
-      . (toElt :: EltRepr sh -> sh)
-      $ go (eltType @sh) (fromElt (toIxShapeRepr ix0 :: sh)) (fromElt (toIxShapeRepr ix :: sh))
+      . (toElt :: EltR sh -> sh)
+      $ go (eltR @sh) (fromElt (toIxShapeRepr ix0 :: sh)) (fromElt (toIxShapeRepr ix :: sh))
       where
-        go :: TupleType sh' -> sh' -> sh' -> sh'
-        go TypeRunit                                                                    ()       ()    = ()
-        go (TypeRpair tl tr)                                                            (l0,r0)  (l,r) = (go tl l0 l, go tr r0 r)
-        go (TypeRscalar (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) i0       i     = i0+i
+        go :: TypeR sh' -> sh' -> sh' -> sh'
+        go TupRunit                                                                    ()       ()    = ()
+        go (TupRpair tl tr)                                                            (l0,r0)  (l,r) = (go tl l0 l, go tr r0 r)
+        go (TupRsingle (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) i0       i     = i0+i
         go _ _ _ =
-          $internalError "toIArray" "error in index offset"
+          internalError "error in index offset"
 
