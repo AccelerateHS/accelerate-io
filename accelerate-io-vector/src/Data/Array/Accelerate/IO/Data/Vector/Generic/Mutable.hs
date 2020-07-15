@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Data.Vector.Generic.Mutable
@@ -20,38 +21,37 @@
 -- This module provides instance for 'Data.Vector.Generic.Mutable.MVector', for
 -- generic mutable vectors backed by Accelerate.
 --
--- @since 1.2.0.0
+-- @since 0.1.0.0
 --
 
 module Data.Array.Accelerate.IO.Data.Vector.Generic.Mutable
   where
 
 import Data.Array.Accelerate.Array.Data
-import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Lifetime
+import Data.Array.Accelerate.Representation.Type
+import Data.Array.Accelerate.Sugar.Elt
+import Data.Array.Accelerate.Sugar.Shape
 import Data.Array.Accelerate.Type
 
 import qualified Data.Vector.Generic.Mutable                        as V
 
 import Control.Monad.Primitive
 import Data.Typeable
-import Foreign.Ptr
 import Foreign.Marshal.Utils
 import Foreign.Storable
 import Prelude                                                      hiding ( length )
 
 import GHC.Base
-import GHC.TypeLits
 import GHC.ForeignPtr
 
 
 -- | Dense, regular, mutable, multi-dimensional arrays
 --
 data MArray sh s e where
-  MArray  :: (Shape sh, Elt e)
-          => EltRepr sh                         -- extent of dimensions == shape
-          -> MutableArrayData (EltRepr e)       -- mutable array payload
+  MArray  :: EltR sh                        -- extent of dimensions == shape
+          -> MutableArrayData (EltR e)      -- mutable array payload
           -> MArray sh s e
 
 deriving instance Typeable MArray
@@ -69,53 +69,89 @@ instance Elt e => V.MVector MVector e where
   {-# INLINE basicUnsafeCopy  #-}
   basicLength (MArray ((), n) _) = n
 
-  basicUnsafeSlice j m (MArray _ mad) = MArray ((),m) (go arrayElt mad 1)
+  basicUnsafeSlice j m (MArray _ mad) = MArray ((),m) (go (eltR @e) mad)
     where
-      go :: ArrayEltR a -> MutableArrayData a -> Int -> MutableArrayData a
-      go ArrayEltRunit           AD_Unit         !_ = AD_Unit
-      go ArrayEltRint            (AD_Int v)      !s = AD_Int     (slice v s)
-      go ArrayEltRint8           (AD_Int8 v)     !s = AD_Int8    (slice v s)
-      go ArrayEltRint16          (AD_Int16 v)    !s = AD_Int16   (slice v s)
-      go ArrayEltRint32          (AD_Int32 v)    !s = AD_Int32   (slice v s)
-      go ArrayEltRint64          (AD_Int64 v)    !s = AD_Int64   (slice v s)
-      go ArrayEltRword           (AD_Word v)     !s = AD_Word    (slice v s)
-      go ArrayEltRword8          (AD_Word8 v)    !s = AD_Word8   (slice v s)
-      go ArrayEltRword16         (AD_Word16 v)   !s = AD_Word16  (slice v s)
-      go ArrayEltRword32         (AD_Word32 v)   !s = AD_Word32  (slice v s)
-      go ArrayEltRword64         (AD_Word64 v)   !s = AD_Word64  (slice v s)
-      go ArrayEltRhalf           (AD_Half v)     !s = AD_Half    (slice v s)
-      go ArrayEltRfloat          (AD_Float v)    !s = AD_Float   (slice v s)
-      go ArrayEltRdouble         (AD_Double v)   !s = AD_Double  (slice v s)
-      go ArrayEltRbool           (AD_Bool v)     !s = AD_Bool    (slice v s)
-      go ArrayEltRchar           (AD_Char v)     !s = AD_Char    (slice v s)
-      go (ArrayEltRvec ae)       (AD_Vec n# v)   !s = AD_Vec n# (go ae v (I# n# * s))
-      go (ArrayEltRpair ae1 ae2) (AD_Pair v1 v2) !s = AD_Pair (go ae1 v1 s) (go ae2 v2 s)
+      go :: TypeR a -> MutableArrayData a -> MutableArrayData a
+      go TupRunit           ()       = ()
+      go (TupRpair aR1 aR2) (a1, a2) = (go aR1 a1, go aR2 a2)
+      go (TupRsingle aR)    a        = scalar aR a
+
+      scalar :: ScalarType a -> MutableArrayData a -> MutableArrayData a
+      scalar (SingleScalarType t) a = single t a 1
+      scalar (VectorScalarType t) a = vector t a
+
+      vector :: VectorType a -> MutableArrayData a -> MutableArrayData a
+      vector (VectorType w t) a
+        | SingleArrayDict <- singleArrayDict t
+        = single t a w
+
+      single :: SingleType a -> MutableArrayData a -> Int -> MutableArrayData a
+      single (NumSingleType t) = num t
+
+      num :: NumType a -> MutableArrayData a -> Int -> MutableArrayData a
+      num (IntegralNumType t) = integral t
+      num (FloatingNumType t) = floating t
+
+      integral :: IntegralType a -> MutableArrayData a -> Int -> MutableArrayData a
+      integral TypeInt    = slice
+      integral TypeInt8   = slice
+      integral TypeInt16  = slice
+      integral TypeInt32  = slice
+      integral TypeInt64  = slice
+      integral TypeWord   = slice
+      integral TypeWord8  = slice
+      integral TypeWord16 = slice
+      integral TypeWord32 = slice
+      integral TypeWord64 = slice
+
+      floating :: FloatingType a -> MutableArrayData a -> Int -> MutableArrayData a
+      floating TypeHalf   = slice
+      floating TypeFloat  = slice
+      floating TypeDouble = slice
 
       slice :: forall a. Storable a => UniqueArray a -> Int -> UniqueArray a
       slice (UniqueArray uid (Lifetime lft w fp)) s =
         UniqueArray uid (Lifetime lft w (plusForeignPtr fp (j * s * sizeOf (undefined::a))))
 
-  basicOverlaps (MArray ((),m) mad1) (MArray ((),n) mad2) = go arrayElt mad1 mad2 1
+  basicOverlaps (MArray ((),m) mad1) (MArray ((),n) mad2) = go (eltR @e) mad1 mad2
     where
-      go :: ArrayEltR a -> MutableArrayData a -> MutableArrayData a -> Int -> Bool
-      go ArrayEltRunit           AD_Unit           AD_Unit           !_ = False
-      go ArrayEltRint            (AD_Int v1)       (AD_Int v2)       !s = overlaps v1 v2 s
-      go ArrayEltRint8           (AD_Int8 v1)      (AD_Int8 v2)      !s = overlaps v1 v2 s
-      go ArrayEltRint16          (AD_Int16 v1)     (AD_Int16 v2)     !s = overlaps v1 v2 s
-      go ArrayEltRint32          (AD_Int32 v1)     (AD_Int32 v2)     !s = overlaps v1 v2 s
-      go ArrayEltRint64          (AD_Int64 v1)     (AD_Int64 v2)     !s = overlaps v1 v2 s
-      go ArrayEltRword           (AD_Word v1)      (AD_Word v2)      !s = overlaps v1 v2 s
-      go ArrayEltRword8          (AD_Word8 v1)     (AD_Word8 v2)     !s = overlaps v1 v2 s
-      go ArrayEltRword16         (AD_Word16 v1)    (AD_Word16 v2)    !s = overlaps v1 v2 s
-      go ArrayEltRword32         (AD_Word32 v1)    (AD_Word32 v2)    !s = overlaps v1 v2 s
-      go ArrayEltRword64         (AD_Word64 v1)    (AD_Word64 v2)    !s = overlaps v1 v2 s
-      go ArrayEltRhalf           (AD_Half v1)      (AD_Half v2)      !s = overlaps v1 v2 s
-      go ArrayEltRfloat          (AD_Float v1)     (AD_Float v2)     !s = overlaps v1 v2 s
-      go ArrayEltRdouble         (AD_Double v1)    (AD_Double v2)    !s = overlaps v1 v2 s
-      go ArrayEltRbool           (AD_Bool v1)      (AD_Bool v2)      !s = overlaps v1 v2 s
-      go ArrayEltRchar           (AD_Char v1)      (AD_Char v2)      !s = overlaps v1 v2 s
-      go (ArrayEltRvec ae)       (AD_Vec n# v1)    (AD_Vec _ v2)     !s = go ae v1 v2 (I# n# * s) -- the type ensures these must be the same vector width
-      go (ArrayEltRpair ae1 ae2) (AD_Pair v11 v12) (AD_Pair v21 v22) !s = go ae1 v11 v21 s || go ae2 v12 v22 s
+      go :: TypeR a -> MutableArrayData a -> MutableArrayData a -> Bool
+      go TupRunit           ()       ()       = False
+      go (TupRpair aR1 aR2) (a1, a2) (b1, b2) = go aR1 a1 b1 || go aR2 a2 b2
+      go (TupRsingle aR)    a        b        = scalar aR a b
+
+      scalar :: ScalarType a -> MutableArrayData a -> MutableArrayData a -> Bool
+      scalar (SingleScalarType t) a b = single t a b 1
+      scalar (VectorScalarType t) a b = vector t a b
+
+      vector :: VectorType a -> MutableArrayData a -> MutableArrayData a -> Bool
+      vector (VectorType w t) a b
+        | SingleArrayDict <- singleArrayDict t
+        = single t a b w
+
+      single :: SingleType a -> MutableArrayData a -> MutableArrayData a -> Int -> Bool
+      single (NumSingleType t) = num t
+
+      num :: NumType a -> MutableArrayData a -> MutableArrayData a -> Int -> Bool
+      num (IntegralNumType t) = integral t
+      num (FloatingNumType t) = floating t
+
+      integral :: IntegralType a -> MutableArrayData a -> MutableArrayData a -> Int -> Bool
+      integral TypeInt    = overlaps
+      integral TypeInt8   = overlaps
+      integral TypeInt16  = overlaps
+      integral TypeInt32  = overlaps
+      integral TypeInt64  = overlaps
+      integral TypeWord   = overlaps
+      integral TypeWord8  = overlaps
+      integral TypeWord16 = overlaps
+      integral TypeWord32 = overlaps
+      integral TypeWord64 = overlaps
+
+      floating :: FloatingType a -> MutableArrayData a -> MutableArrayData a -> Int -> Bool
+      floating TypeHalf   = overlaps
+      floating TypeFloat  = overlaps
+      floating TypeDouble = overlaps
 
       overlaps :: forall a. Storable a => UniqueArray a -> UniqueArray a -> Int -> Bool
       overlaps (UniqueArray _ (Lifetime _ _ (ForeignPtr addr1# c1))) (UniqueArray _ (Lifetime _ _ (ForeignPtr addr2# c2))) s =
@@ -134,67 +170,99 @@ instance Elt e => V.MVector MVector e where
       between :: Int -> Int -> Int -> Bool
       between x y z = x >= y && x < z
 
-  basicUnsafeNew n = unsafePrimToPrim $ MArray ((),n) <$> newArrayData n
+  basicUnsafeNew n = unsafePrimToPrim $ MArray ((),n) <$> newArrayData (eltR @e) n
 
-  basicInitialize (MArray ((),n) mad) = unsafePrimToPrim $ go (arrayElt :: ArrayEltR (EltRepr e)) (ptrsOfArrayData mad) 1
+  basicInitialize (MArray ((),n) mad) = unsafePrimToPrim $ go (eltR @e) mad
     where
-      go :: ArrayEltR a -> ArrayPtrs a -> Int -> IO ()
-      go ArrayEltRunit           () !_ = return ()
-      go ArrayEltRint            p  !s = initialise p s
-      go ArrayEltRint8           p  !s = initialise p s
-      go ArrayEltRint16          p  !s = initialise p s
-      go ArrayEltRint32          p  !s = initialise p s
-      go ArrayEltRint64          p  !s = initialise p s
-      go ArrayEltRword           p  !s = initialise p s
-      go ArrayEltRword8          p  !s = initialise p s
-      go ArrayEltRword16         p  !s = initialise p s
-      go ArrayEltRword32         p  !s = initialise p s
-      go ArrayEltRword64         p  !s = initialise p s
-      go ArrayEltRhalf           p  !s = initialise p s
-      go ArrayEltRfloat          p  !s = initialise p s
-      go ArrayEltRdouble         p  !s = initialise p s
-      go ArrayEltRbool           p  !s = initialise p s
-      go ArrayEltRchar           p  !s = initialise p s
-      go aeR@(ArrayEltRvec ae)   p  !s = go ae p (s * width aeR)
-      go (ArrayEltRpair ae1 ae2) (p1,p2) !s = go ae1 p1 s >> go ae2 p2 s
+      go :: TypeR a -> MutableArrayData a -> IO ()
+      go TupRunit           ()       = return ()
+      go (TupRpair aR1 aR2) (a1, a2) = go aR1 a1 >> go aR2 a2
+      go (TupRsingle aR)    a        = scalar aR a
 
-      width :: forall n a. KnownNat n => ArrayEltR (Vec n a) -> Int
-      width _ = fromInteger (natVal' (proxy# :: Proxy# n))
+      scalar :: ScalarType a -> MutableArrayData a -> IO ()
+      scalar (SingleScalarType t) a = single t a 1
+      scalar (VectorScalarType t) a = vector t a
 
-      initialise :: forall a. Storable a => Ptr a -> Int -> IO ()
-      initialise p s = fillBytes p 0 (n * s * sizeOf (undefined::a))
+      vector :: VectorType a -> MutableArrayData a -> IO ()
+      vector (VectorType w t) a
+        | SingleArrayDict <- singleArrayDict t
+        = single t a w
 
-  basicUnsafeRead  (MArray _ mad) i   = unsafePrimToPrim $ toElt <$> unsafeReadArrayData mad i
-  basicUnsafeWrite (MArray _ mad) i v = unsafePrimToPrim $ unsafeWriteArrayData mad i (fromElt v)
+      single :: SingleType a -> MutableArrayData a -> Int -> IO ()
+      single (NumSingleType t) = num t
 
-  basicUnsafeCopy (MArray _ dst) (MArray ((),n) src) = unsafePrimToPrim $ go (arrayElt :: ArrayEltR (EltRepr e)) (ptrsOfArrayData dst) (ptrsOfArrayData src) 1
+      num :: NumType a -> MutableArrayData a -> Int -> IO ()
+      num (IntegralNumType t) = integral t
+      num (FloatingNumType t) = floating t
+
+      integral :: IntegralType a -> MutableArrayData a -> Int -> IO ()
+      integral TypeInt    = initialise
+      integral TypeInt8   = initialise
+      integral TypeInt16  = initialise
+      integral TypeInt32  = initialise
+      integral TypeInt64  = initialise
+      integral TypeWord   = initialise
+      integral TypeWord8  = initialise
+      integral TypeWord16 = initialise
+      integral TypeWord32 = initialise
+      integral TypeWord64 = initialise
+
+      floating :: FloatingType a -> MutableArrayData a -> Int -> IO ()
+      floating TypeHalf   = initialise
+      floating TypeFloat  = initialise
+      floating TypeDouble = initialise
+
+      initialise :: forall a. Storable a => UniqueArray a -> Int -> IO ()
+      initialise ua s = withUniqueArrayPtr ua $ \p -> fillBytes p 0 (n * s * sizeOf (undefined::a))
+
+  basicUnsafeRead  (MArray _ mad) i   = unsafePrimToPrim $ toElt <$> readArrayData (eltR @e) mad i
+  basicUnsafeWrite (MArray _ mad) i v = unsafePrimToPrim $ writeArrayData (eltR @e) mad i (fromElt v)
+
+  basicUnsafeCopy (MArray _ dst) (MArray ((),n) src) = unsafePrimToPrim $ go (eltR @e) dst src
     where
-      go :: ArrayEltR a -> ArrayPtrs a -> ArrayPtrs a -> Int -> IO ()
-      go ArrayEltRunit           () () !_ = return ()
-      go ArrayEltRint            u  v  !s = copy u v s
-      go ArrayEltRint8           u  v  !s = copy u v s
-      go ArrayEltRint16          u  v  !s = copy u v s
-      go ArrayEltRint32          u  v  !s = copy u v s
-      go ArrayEltRint64          u  v  !s = copy u v s
-      go ArrayEltRword           u  v  !s = copy u v s
-      go ArrayEltRword8          u  v  !s = copy u v s
-      go ArrayEltRword16         u  v  !s = copy u v s
-      go ArrayEltRword32         u  v  !s = copy u v s
-      go ArrayEltRword64         u  v  !s = copy u v s
-      go ArrayEltRhalf           u  v  !s = copy u v s
-      go ArrayEltRfloat          u  v  !s = copy u v s
-      go ArrayEltRdouble         u  v  !s = copy u v s
-      go ArrayEltRbool           u  v  !s = copy u v s
-      go ArrayEltRchar           u  v  !s = copy u v s
-      go aeR@(ArrayEltRvec ae)   u  v  !s = go ae u v (s * width aeR)
-      go (ArrayEltRpair ae1 ae2) (u1,u2) (v1,v2) !s = go ae1 u1 v1 s >> go ae2 u2 v2 s
+      go :: TypeR a -> MutableArrayData a -> MutableArrayData a -> IO ()
+      go TupRunit           ()       ()       = return ()
+      go (TupRpair aR1 aR2) (a1, a2) (b1, b2) = go aR1 a1 b1 >> go aR2 a2 b2
+      go (TupRsingle aR)    a        b        = scalar aR a b
 
-      width :: forall n a. KnownNat n => ArrayEltR (Vec n a) -> Int
-      width _ = fromInteger (natVal' (proxy# :: Proxy# n))
+      scalar :: ScalarType a -> MutableArrayData a -> MutableArrayData a -> IO ()
+      scalar (SingleScalarType t) a b = single t a b 1
+      scalar (VectorScalarType t) a b = vector t a b
 
-      copy :: forall a. Storable a => Ptr a -> Ptr a -> Int -> IO ()
-      copy u v s = copyBytes u v (n * s * sizeOf (undefined::a))
+      vector :: VectorType a -> MutableArrayData a -> MutableArrayData a -> IO ()
+      vector (VectorType w t) a b
+        | SingleArrayDict <- singleArrayDict t
+        = single t a b w
 
+      single :: SingleType a -> MutableArrayData a -> MutableArrayData a -> Int -> IO ()
+      single (NumSingleType t) = num t
+
+      num :: NumType a -> MutableArrayData a -> MutableArrayData a -> Int -> IO ()
+      num (IntegralNumType t) = integral t
+      num (FloatingNumType t) = floating t
+
+      integral :: IntegralType a -> MutableArrayData a -> MutableArrayData a -> Int -> IO ()
+      integral TypeInt    = copy
+      integral TypeInt8   = copy
+      integral TypeInt16  = copy
+      integral TypeInt32  = copy
+      integral TypeInt64  = copy
+      integral TypeWord   = copy
+      integral TypeWord8  = copy
+      integral TypeWord16 = copy
+      integral TypeWord32 = copy
+      integral TypeWord64 = copy
+
+      floating :: FloatingType a -> MutableArrayData a -> MutableArrayData a -> Int -> IO ()
+      floating TypeHalf   = copy
+      floating TypeFloat  = copy
+      floating TypeDouble = copy
+
+      copy :: forall a. Storable a => UniqueArray a -> UniqueArray a -> Int -> IO ()
+      copy uu uv s =
+        withUniqueArrayPtr uu $ \u ->
+        withUniqueArrayPtr uv $ \v ->
+          copyBytes u v (n * s * sizeOf (undefined::a))
 
 #if !MIN_VERSION_base(4,10,0)
 plusForeignPtr :: ForeignPtr a -> Int -> ForeignPtr b

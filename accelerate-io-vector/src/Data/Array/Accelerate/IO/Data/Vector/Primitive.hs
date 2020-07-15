@@ -1,6 +1,8 @@
-{-# LANGUAGE BangPatterns    #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies    #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Data.Vector.Primitive
 -- Copyright   : [2017..2019] The Accelerate Team
@@ -26,37 +28,23 @@ import Data.Vector.Primitive
 
 import Data.Array.Accelerate.IO.Data.Vector.Primitive.Internal
 
-import Data.Array.Accelerate.Array.Data
-import Data.Array.Accelerate.Array.Sugar                            hiding ( Vector )
+import Data.Array.Accelerate.Array.Data                             ( ArrayData, GArrayDataR, ScalarArrayDataR )
 import Data.Array.Accelerate.Array.Unique
 import Data.Array.Accelerate.Error
-import qualified Data.Array.Accelerate.Array.Representation         as R
-
-import Data.Int
-import Data.Word
+import Data.Array.Accelerate.Representation.Type
+import Data.Array.Accelerate.Sugar.Array                            hiding ( Vector )
+import Data.Array.Accelerate.Sugar.Elt
+import Data.Array.Accelerate.Sugar.Shape
+import Data.Array.Accelerate.Type
+import qualified Data.Array.Accelerate.Representation.Array         as R
+import qualified Data.Array.Accelerate.Representation.Shape         as R
 
 
 -- | A family of types which represent a collection of Primitive Vectors. The
 -- structure of the collection depends on the element type @e@ of the
 -- corresponding Accelerate array.
 --
-type family Vectors e :: *
-
-type instance Vectors ()     = ()
-type instance Vectors Int    = Vector Int
-type instance Vectors Int8   = Vector Int8
-type instance Vectors Int16  = Vector Int16
-type instance Vectors Int32  = Vector Int32
-type instance Vectors Int64  = Vector Int64
-type instance Vectors Word   = Vector Word
-type instance Vectors Word8  = Vector Word8
-type instance Vectors Word16 = Vector Word16
-type instance Vectors Word32 = Vector Word32
-type instance Vectors Word64 = Vector Word64
-type instance Vectors Float  = Vector Float
-type instance Vectors Double = Vector Double
-type instance Vectors Char   = Vector Char
-type instance Vectors (a,b)  = (Vectors a, Vectors b)
+type Vectors e = GArrayDataR Vector e
 
 
 -- | /O(n)/ (typically). Convert a collection of primitive vectors into an
@@ -66,37 +54,54 @@ type instance Vectors (a,b)  = (Vectors a, Vectors b)
 --
 -- See also: <https://ghc.haskell.org/trac/ghc/ticket/5556>
 --
--- @since 1.1.0.0@
+-- @since 0.1.0.0@
 --
 {-# INLINE fromVectors #-}
-fromVectors :: (Shape sh, Elt e) => sh -> Vectors (EltRepr e) -> Array sh e
-fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
+fromVectors :: forall sh e. (HasCallStack, Shape sh, Elt e) => sh -> Vectors (EltR e) -> Array sh e
+fromVectors sh vecs = Array (R.Array (fromElt sh) (aux (eltR @e) vecs))
   where
-    {-# INLINE wrap #-}
-    wrap :: Prim a => Vector a -> UniqueArray a
-    wrap v@(Vector _ l _)
-      = $boundsCheck "fromVectors" "shape mismatch" (size sh == l)
-      $ uniqueArrayOfVector v
+    aux :: TypeR a -> Vectors a -> ArrayData a
+    aux TupRunit           ()       = ()
+    aux (TupRpair aR1 aR2) (a1, a2) = (aux aR1 a1, aux aR2 a2)
+    aux (TupRsingle aR)    a        = scalar aR a
 
-    {-# INLINE aux #-}
-    aux :: ArrayEltR e -> Vectors e -> ArrayData e
-    aux ArrayEltRunit           _       = AD_Unit
-    aux ArrayEltRint            v       = AD_Int    (wrap v)
-    aux ArrayEltRint8           v       = AD_Int8   (wrap v)
-    aux ArrayEltRint16          v       = AD_Int16  (wrap v)
-    aux ArrayEltRint32          v       = AD_Int32  (wrap v)
-    aux ArrayEltRint64          v       = AD_Int64  (wrap v)
-    aux ArrayEltRword           v       = AD_Word   (wrap v)
-    aux ArrayEltRword8          v       = AD_Word8  (wrap v)
-    aux ArrayEltRword16         v       = AD_Word16 (wrap v)
-    aux ArrayEltRword32         v       = AD_Word32 (wrap v)
-    aux ArrayEltRword64         v       = AD_Word64 (wrap v)
-    aux ArrayEltRchar           v       = AD_Char   (wrap v)
-    aux ArrayEltRfloat          v       = AD_Float  (wrap v)
-    aux ArrayEltRdouble         v       = AD_Double (wrap v)
-    aux (ArrayEltRpair ad1 ad2) (v1,v2) = AD_Pair   (aux ad1 v1) (aux ad2 v2)
-    --
-    aux _ _ = $internalError "fromVectors" "unsupported type"
+    scalar :: ScalarType a -> Vectors a -> ArrayData a
+    scalar (SingleScalarType t) a = single t a 1
+    scalar (VectorScalarType t) a = vector t a
+
+    vector :: VectorType a -> Vectors a -> ArrayData a
+    vector (VectorType w t) a
+      | SingleArrayDict <- singleArrayDict t
+      = single t a w
+
+    single :: SingleType a -> Vectors a -> Int -> ArrayData a
+    single (NumSingleType t) = num t
+
+    num :: NumType a -> Vectors a -> Int -> ArrayData a
+    num (IntegralNumType t) = integral t
+    num (FloatingNumType t) = floating t
+
+    integral :: IntegralType a -> Vectors a -> Int -> ArrayData a
+    integral TypeInt    = wrap
+    integral TypeInt8   = wrap
+    integral TypeInt16  = wrap
+    integral TypeInt32  = wrap
+    integral TypeInt64  = wrap
+    integral TypeWord   = wrap
+    integral TypeWord8  = wrap
+    integral TypeWord16 = wrap
+    integral TypeWord32 = wrap
+    integral TypeWord64 = wrap
+
+    floating :: FloatingType a -> Vectors a -> Int -> ArrayData a
+    floating TypeHalf   = wrap
+    floating TypeFloat  = wrap
+    floating TypeDouble = wrap
+
+    wrap :: Prim a => Vector a -> Int -> UniqueArray a
+    wrap v@(Vector _ l _) w
+      = boundsCheck "shape mismatch" (w * size sh == l)
+      $ uniqueArrayOfVector v
 
 
 -- | /O(1)/ (typically). Convert an Accelerate array into a collection of
@@ -105,36 +110,87 @@ fromVectors sh vecs = Array (fromElt sh) (aux arrayElt vecs)
 -- If the array data was allocated by Accelerate, this can typically be done
 -- without copying.
 --
--- @since 1.1.0.0@
+-- @since 0.1.0.0@
 --
 {-# INLINE toVectors #-}
-toVectors :: (Shape sh, Elt e) => Array sh e -> Vectors (EltRepr e)
-toVectors (Array sh adata) = aux arrayElt adata
+toVectors :: forall sh e. (HasCallStack, Shape sh, Elt e) => Array sh e -> Vectors (EltR e)
+toVectors (Array (R.Array sh adata)) = aux (eltR @e) adata
   where
+    aux :: TypeR a -> ArrayData a -> Vectors a
+    aux TupRunit           ()       = ()
+    aux (TupRpair aR1 aR2) (a1, a2) = (aux aR1 a1, aux aR2 a2)
+    aux (TupRsingle aR)    a        = scalar aR a
+
+    scalar :: ScalarType a -> ArrayData a -> Vectors a
+    scalar (SingleScalarType t) a = single t a 1
+    scalar (VectorScalarType t) a = vector t a
+
+    vector :: VectorType a -> ArrayData a -> Vectors a
+    vector (VectorType w t) a
+      | SingleArrayDict <- singleArrayDict t
+      = single t a w
+
+    single :: SingleType a -> ArrayData a -> Int -> Vectors a
+    single (NumSingleType t) = num t
+
+    num :: NumType a -> ArrayData a -> Int -> Vectors a
+    num (IntegralNumType t) = integral t
+    num (FloatingNumType t) = floating t
+
+    integral :: IntegralType a -> ArrayData a -> Int -> Vectors a
+    integral TypeInt    = wrap
+    integral TypeInt8   = wrap
+    integral TypeInt16  = wrap
+    integral TypeInt32  = wrap
+    integral TypeInt64  = wrap
+    integral TypeWord   = wrap
+    integral TypeWord8  = wrap
+    integral TypeWord16 = wrap
+    integral TypeWord32 = wrap
+    integral TypeWord64 = wrap
+
+    floating :: FloatingType a -> ArrayData a -> Int -> Vectors a
+    floating TypeHalf   = wrap
+    floating TypeFloat  = wrap
+    floating TypeDouble = wrap
+
     n :: Int
-    !n = R.size sh
+    n = R.size (shapeR @sh) sh
 
-    {-# INLINE wrap #-}
-    wrap :: Prim a => UniqueArray a -> Vector a
-    wrap ua = vectorOfUniqueArray n ua
+    wrap :: Prim a => UniqueArray a -> Int -> Vector a
+    wrap ua w = vectorOfUniqueArray (w * n) ua
 
-    {-# INLINE aux #-}
-    aux :: ArrayEltR e -> ArrayData e -> Vectors e
-    aux ArrayEltRunit           AD_Unit         = ()
-    aux ArrayEltRint            (AD_Int v)      = wrap v
-    aux ArrayEltRint8           (AD_Int8 v)     = wrap v
-    aux ArrayEltRint16          (AD_Int16 v)    = wrap v
-    aux ArrayEltRint32          (AD_Int32 v)    = wrap v
-    aux ArrayEltRint64          (AD_Int64 v)    = wrap v
-    aux ArrayEltRword           (AD_Word v)     = wrap v
-    aux ArrayEltRword8          (AD_Word8 v)    = wrap v
-    aux ArrayEltRword16         (AD_Word16 v)   = wrap v
-    aux ArrayEltRword32         (AD_Word32 v)   = wrap v
-    aux ArrayEltRword64         (AD_Word64 v)   = wrap v
-    aux ArrayEltRchar           (AD_Char v)     = wrap v
-    aux ArrayEltRfloat          (AD_Float v)    = wrap v
-    aux ArrayEltRdouble         (AD_Double v)   = wrap v
-    aux (ArrayEltRpair ad1 ad2) (AD_Pair v1 v2) = (aux ad1 v1, aux ad2 v2)
-    --
-    aux _ _ = $internalError "toVectors" "unsupported type"
+
+data SingleArrayDict a where
+  SingleArrayDict :: ( GArrayDataR Vector a ~ Vector (ScalarArrayDataR a)
+                     , GArrayDataR UniqueArray a ~ UniqueArray (ScalarArrayDataR a)
+                     , ScalarArrayDataR a ~ a )
+                  => SingleArrayDict a
+
+singleArrayDict :: SingleType a -> SingleArrayDict a
+singleArrayDict = single
+  where
+    single :: SingleType a -> SingleArrayDict a
+    single (NumSingleType t) = num t
+
+    num :: NumType a -> SingleArrayDict a
+    num (IntegralNumType t) = integral t
+    num (FloatingNumType t) = floating t
+
+    integral :: IntegralType a -> SingleArrayDict a
+    integral TypeInt    = SingleArrayDict
+    integral TypeInt8   = SingleArrayDict
+    integral TypeInt16  = SingleArrayDict
+    integral TypeInt32  = SingleArrayDict
+    integral TypeInt64  = SingleArrayDict
+    integral TypeWord   = SingleArrayDict
+    integral TypeWord8  = SingleArrayDict
+    integral TypeWord16 = SingleArrayDict
+    integral TypeWord32 = SingleArrayDict
+    integral TypeWord64 = SingleArrayDict
+
+    floating :: FloatingType a -> SingleArrayDict a
+    floating TypeHalf   = SingleArrayDict
+    floating TypeFloat  = SingleArrayDict
+    floating TypeDouble = SingleArrayDict
 
