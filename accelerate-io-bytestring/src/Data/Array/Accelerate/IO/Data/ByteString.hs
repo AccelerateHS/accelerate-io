@@ -5,7 +5,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Data.ByteString
--- Copyright   : [2010..2019] The Accelerate Team
+-- Copyright   : [2010..2020] The Accelerate Team
 -- License     : BSD3
 --
 -- Maintainer  : Trevor L. McDonell <trevor.mcdonell@gmail.com>

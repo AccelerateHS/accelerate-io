@@ -1,6 +1,6 @@
 -- |
 -- Module      : Test
--- Copyright   : [2017..2019] Trevor L. McDonell
+-- Copyright   : [2017..2020] Trevor L. McDonell
 -- License     : BSD3
 --
 -- Maintainer  : Trevor L. McDonell <trevor.mcdonell@gmail.com>
