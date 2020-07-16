@@ -18,18 +18,18 @@ module Data.Array.Accelerate.IO.Codec.Picture (
 
 ) where
 
-import Data.Array.Accelerate                              hiding ( Vector )
-import Data.Array.Accelerate.Array.Sugar                  ( EltRepr )
+import Data.Array.Accelerate                                        hiding ( Vector )
+import Data.Array.Accelerate.Sugar.Elt
 import Data.Array.Accelerate.IO.Codec.Picture.Types
 import Data.Array.Accelerate.IO.Data.Vector.Storable
 
-import Data.Vector.Storable                               ( Vector )
+import Data.Vector.Storable                                         ( Vector )
 
 
 -- | /O(1)/. Convert an Accelerate 'Array' into an 'Image'.
 --
 imageOfArray
-    :: (Elt pixel, Vector (PixelBaseComponent pixel) ~ Vectors (EltRepr pixel))
+    :: (Elt pixel, Vector (PixelBaseComponent pixel) ~ Vectors (EltR pixel))
     => Array DIM2 pixel
     -> Image pixel
 imageOfArray arr =
@@ -41,7 +41,7 @@ imageOfArray arr =
 -- | /O(1)/. Convert an 'Image' into an Accelerate 'Array'.
 --
 arrayOfImage
-    :: (Elt pixel, Vector (PixelBaseComponent pixel) ~ Vectors (EltRepr pixel))
+    :: (Elt pixel, Vector (PixelBaseComponent pixel) ~ Vectors (EltR pixel))
     => Image pixel
     -> Array DIM2 pixel
 arrayOfImage Image{..} =
