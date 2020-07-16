@@ -19,7 +19,7 @@ import Test.Tasty
 import Test.Tasty.Hedgehog
 
 import Data.Array.Accelerate                                        ( Shape, Elt )
-import Data.Array.Accelerate.Array.Sugar                            ( EltRepr )
+import Data.Array.Accelerate.Sugar.Elt                              ( EltR )
 import Data.Array.Accelerate.IO.Data.Array.IArray                   as A
 import qualified Data.Array.Accelerate                              as A
 
@@ -45,7 +45,7 @@ iarray ix e = do
 
 
 test_i2a
-    :: forall ix sh a e. (Ix ix, IArray a e, Elt ix, Shape sh, Elt e, Eq e, Show (a ix e), Eq (a ix e), IxShapeRepr (EltRepr ix) ~ EltRepr sh)
+    :: forall ix sh a e. (Ix ix, IArray a e, Elt ix, Show sh, Shape sh, Show e, Elt e, Eq e, Show (a ix e), Eq (a ix e), IxShapeRepr (EltR ix) ~ EltR sh)
     => Proxy a
     -> Gen sh
     -> Gen (ix,ix)
@@ -63,7 +63,7 @@ test_i2a _ _ ix e =
     ia         === ia'           -- indices round-trip correctly
 
 test_a2i
-    :: forall ix sh a e. (Ix ix, IArray a e, Elt ix, Shape sh, Elt e, Eq e, Show (a ix e), Eq sh, Eq e, IxShapeRepr (EltRepr ix) ~ EltRepr sh)
+    :: forall ix sh a e. (Ix ix, IArray a e, Elt ix, Show sh, Shape sh, Show e, Elt e, Eq e, Show (a ix e), Eq sh, Eq e, IxShapeRepr (EltR ix) ~ EltR sh)
     => Proxy a
     -> Gen sh
     -> Gen (ix,ix)

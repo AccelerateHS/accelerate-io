@@ -21,7 +21,7 @@ import Test.Tasty
 import Test.Tasty.Hedgehog
 
 import Data.Array.Accelerate                                        ( Shape, Elt )
-import Data.Array.Accelerate.Array.Sugar                            ( EltRepr )
+import Data.Array.Accelerate.Sugar.Elt                              ( EltR )
 import Data.Array.Accelerate.IO.Data.Array.Unboxed                  as A
 import qualified Data.Array.Accelerate                              as A
 
@@ -31,7 +31,7 @@ import Hedgehog
 
 
 test_u2a
-    :: forall ix sh e. (Ix ix, IArray UArray e, Elt ix, Shape sh, Elt e, Eq e, Show (UArray ix e), Eq (UArray ix e), IxShapeRepr (EltRepr ix) ~ EltRepr sh)
+    :: forall ix sh e. (Ix ix, IArray UArray e, Elt ix, Show sh, Shape sh, Show e, Elt e, Eq e, Show (UArray ix e), Eq (UArray ix e), IxShapeRepr (EltR ix) ~ EltR sh)
     => Gen sh
     -> Gen (ix,ix)
     -> Gen e
@@ -48,7 +48,7 @@ test_u2a _ ix e =
     ua         === ua'            -- indices round-trip correctly
 
 test_a2u
-    :: forall ix sh e. (Ix ix, IArray UArray e, Elt ix, Shape sh, Elt e, Show (UArray ix e), Eq (UArray ix e), Eq sh, Eq e, IxShapeRepr (EltRepr ix) ~ EltRepr sh)
+    :: forall ix sh e. (Ix ix, IArray UArray e, Elt ix, Show sh, Shape sh, Show e, Elt e, Show (UArray ix e), Eq (UArray ix e), Eq sh, Eq e, IxShapeRepr (EltR ix) ~ EltR sh)
     => Gen sh
     -> Gen (ix,ix)
     -> Gen e
