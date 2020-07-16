@@ -18,7 +18,7 @@ import Test.Tasty
 import Test.Tasty.Hedgehog
 
 import Data.Array.Accelerate                                        ( Shape, Elt, Z(..), (:.)(..) )
-import Data.Array.Accelerate.Array.Sugar                            ( rank )
+import Data.Array.Accelerate.Sugar.Shape                            ( rank )
 import Data.Array.Accelerate.IO.Data.Vector.Unboxed                 as A
 import qualified Data.Array.Accelerate                              as A
 
@@ -47,7 +47,7 @@ test_u2a e =
     U.toList uvec === A.toList (A.fromUnboxed uvec)
 
 test_a2u
-    :: forall sh e. (A.Unbox e, Shape sh, Elt e, Eq sh, Eq e)
+    :: forall sh e. (A.Unbox e, Shape sh, Elt e, Show sh, Show e, Eq sh, Eq e)
     => Gen sh
     -> Gen e
     -> Property
@@ -59,7 +59,7 @@ test_a2u dim e =
     A.toList arr === U.toList (A.toUnboxed arr)
 
 test_a2u_dim
-    :: forall sh. (Shape sh, Eq sh)
+    :: forall sh. (Show sh, Shape sh, Eq sh)
     => Gen sh
     -> TestTree
 test_a2u_dim dim =
@@ -74,8 +74,8 @@ test_a2u_dim dim =
     , testProperty "Word16"                 $ test_a2u dim w16
     , testProperty "Word32"                 $ test_a2u dim w32
     , testProperty "Word64"                 $ test_a2u dim w64
-    , testProperty "Char"                   $ test_a2u dim Gen.unicode
-    , testProperty "Bool"                   $ test_a2u dim Gen.bool
+    -- , testProperty "Char"                   $ test_a2u dim Gen.unicode
+    -- , testProperty "Bool"                   $ test_a2u dim Gen.bool
     , testProperty "Float"                  $ test_a2u dim f32
     , testProperty "Double"                 $ test_a2u dim f64
     -- , testProperty "Complex Float"          $ test_a2u dim (complex f32)
@@ -97,8 +97,8 @@ test_vector_unboxed =
       , testProperty "Word16"               $ test_u2a w16
       , testProperty "Word32"               $ test_u2a w32
       , testProperty "Word64"               $ test_u2a w64
-      , testProperty "Char"                 $ test_u2a Gen.unicode
-      , testProperty "Bool"                 $ test_u2a Gen.bool
+      -- , testProperty "Char"                 $ test_u2a Gen.unicode
+      -- , testProperty "Bool"                 $ test_u2a Gen.bool
       , testProperty "Float"                $ test_u2a f32
       , testProperty "Double"               $ test_u2a f64
       -- , testProperty "Complex Float"        $ test_u2a (complex f32)

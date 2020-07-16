@@ -20,7 +20,8 @@ import Test.Tasty
 import Test.Tasty.Hedgehog
 
 import Data.Array.Accelerate                                        ( Shape, Elt, Z(..), (:.)(..) )
-import Data.Array.Accelerate.Array.Sugar                            ( rank, EltRepr )
+import Data.Array.Accelerate.Sugar.Elt                              ( EltR )
+import Data.Array.Accelerate.Sugar.Shape                            ( rank )
 import Data.Array.Accelerate.Data.Complex
 import Data.Array.Accelerate.IO.Data.Vector.Storable                as A
 import qualified Data.Array.Accelerate                              as A
@@ -31,6 +32,7 @@ import Hedgehog
 import qualified Hedgehog.Gen                                       as Gen
 import qualified Hedgehog.Range                                     as Range
 
+import Data.Char
 import Data.Word
 import Text.Printf
 import Prelude                                                      as P
@@ -44,8 +46,11 @@ boolToWord8 :: Bool -> Word8
 boolToWord8 True  = 1
 boolToWord8 False = 0
 
+charToWord32 :: Char -> Word32
+charToWord32 = fromIntegral . ord
+
 test_s2a
-    :: forall e. (Storable e, Elt e, Eq e, Vectors (EltRepr e) ~ Vector e)
+    :: forall e. (Show e, Storable e, Elt e, Eq e, Vectors (EltR e) ~ Vector e)
     => Gen e
     -> Property
 test_s2a e =
@@ -56,8 +61,8 @@ test_s2a e =
     S.toList svec === A.toList (A.fromVectors sh svec)
 
 test_s2a_t2
-    :: forall a b. ( Storable a, Elt a, Eq a, Vectors (EltRepr a) ~ Vector a
-                   , Storable b, Elt b, Eq b, Vectors (EltRepr b) ~ Vector b
+    :: forall a b. ( Show a, Storable a, Elt a, Eq a, Vectors (EltR a) ~ Vector a
+                   , Show b, Storable b, Elt b, Eq b, Vectors (EltR b) ~ Vector b
                    )
     => Gen a
     -> Gen b
@@ -72,7 +77,7 @@ test_s2a_t2 a b =
 
 
 test_a2s
-    :: forall sh e. (Shape sh, Storable e, Elt e, Eq sh, Eq e, Vectors (EltRepr e) ~ Vector e)
+    :: forall sh e. (Show sh, Shape sh, Show e, Storable e, Elt e, Eq sh, Eq e, Vectors (EltR e) ~ Vector e)
     => Gen sh
     -> Gen e
     -> Property
@@ -84,8 +89,8 @@ test_a2s dim e =
     A.toList arr === S.toList (A.toVectors arr)
 
 test_a2s_t2
-    :: forall sh a b. ( Shape sh, Eq sh, Eq a, Eq b, Elt a, Elt b, Storable a, Storable b
-                      , Vectors (EltRepr (a,b)) ~ (((), Vector a), Vector b)
+    :: forall sh a b. ( Show sh, Shape sh, Eq sh, Show a, Eq a, Show b, Eq b, Elt a, Elt b, Storable a, Storable b
+                      , Vectors (EltR (a,b)) ~ (((), Vector a), Vector b)
                       )
     => Gen sh
     -> Gen (a,b)
@@ -101,8 +106,8 @@ test_a2s_t2 dim e =
 
 
 test_s2a_complex
-    :: forall e. ( Storable e, Elt (Complex e), Eq e
-                 , Vectors (EltRepr (Complex e)) ~ Vector e
+    :: forall e. ( Show e, Storable e, Elt (Complex e), Eq e
+                 , Vectors (EltR (Complex e)) ~ Vector e
                  )
     => Gen (Complex e)
     -> Property
@@ -114,8 +119,8 @@ test_s2a_complex e =
     S.toList svec === A.toList (A.fromVectors sh (S.unsafeCast svec :: S.Vector e))
 
 test_a2s_complex
-    :: forall sh e. ( Shape sh, Storable e, Elt (Complex e), Eq sh, Eq e
-                    , Vectors (EltRepr (Complex e)) ~ Vector e
+    :: forall sh e. ( Show sh, Shape sh, Show e, Storable e, Elt (Complex e), Eq sh, Eq e
+                    , Vectors (EltR (Complex e)) ~ Vector e
                     )
     => Gen sh
     -> Gen (Complex e)
@@ -129,7 +134,7 @@ test_a2s_complex dim e =
 
 
 test_a2s_dim
-    :: forall sh. (Shape sh, Eq sh)
+    :: forall sh. (Show sh, Shape sh, Eq sh)
     => Gen sh
     -> TestTree
 test_a2s_dim dim =
@@ -144,7 +149,7 @@ test_a2s_dim dim =
     , testProperty "Word16"                 $ test_a2s dim w16
     , testProperty "Word32"                 $ test_a2s dim w32
     , testProperty "Word64"                 $ test_a2s dim w64
-    , testProperty "Char"                   $ test_a2s dim Gen.unicode
+    -- , testProperty "Char"                   $ test_a2s dim Gen.unicode
     -- , testProperty "Bool"                   $ test_a2s dim Gen.bool
     , testProperty "Float"                  $ test_a2s dim f32
     , testProperty "Double"                 $ test_a2s dim f64
@@ -168,8 +173,8 @@ test_vector_storable =
       , testProperty "Word16"         $ test_s2a w16
       , testProperty "Word32"         $ test_s2a w32
       , testProperty "Word64"         $ test_s2a w64
-      , testProperty "Char"           $ test_s2a Gen.unicode
-      , testProperty "Bool"           $ test_s2a (boolToWord8 <$> Gen.bool)
+      , testProperty "Char"           $ test_s2a (charToWord32 <$> Gen.unicode)
+      , testProperty "Bool"           $ test_s2a (boolToWord8  <$> Gen.bool)
       , testProperty "Float"          $ test_s2a f32
       , testProperty "Double"         $ test_s2a f64
       , testProperty "Complex Float"  $ test_s2a_complex (complex f32)

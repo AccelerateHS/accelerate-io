@@ -59,7 +59,7 @@ test-suite test-io
   ghc-options:          -main-is Test
 
   build-depends:
-        base                    >= 4.8  && < 4.13
+        base                    >= 4.8  && < 5
       , accelerate
       , accelerate-io-vector
       , hedgehog                >= 0.5
