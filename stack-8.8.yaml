@@ -17,6 +17,8 @@ extra-deps:
 - github: tmcdonell/accelerate
   commit: 7ff11c75e1c9249a3846b3e15f9d0a92cd859a43
 
+- repa-3.4.1.4
+
 # Override default flag values for local packages and extra-deps
 # flags: {}
 
