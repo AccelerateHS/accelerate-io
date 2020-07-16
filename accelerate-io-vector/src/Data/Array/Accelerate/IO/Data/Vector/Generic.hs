@@ -21,7 +21,7 @@
 -- store into, arrays which can then be passed directly to an Accelerate
 -- computation.
 --
--- @since 1.2.0.0
+-- @since 0.1.0.0
 --
 
 module Data.Array.Accelerate.IO.Data.Vector.Generic

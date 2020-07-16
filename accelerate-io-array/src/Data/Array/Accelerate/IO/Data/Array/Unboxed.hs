@@ -55,7 +55,7 @@ import System.IO.Unsafe
 --
 -- See also: <https://ghc.haskell.org/trac/ghc/ticket/5556>
 --
--- @since 1.1.0.0@
+-- @since 0.1.0.0@
 --
 {-# INLINE fromUArray #-}
 fromUArray
@@ -111,7 +111,7 @@ fromUArray (UArray lo hi n ba#) = Array (R.Array (fromElt sh) (tuple (eltR @e)))
 -- If the array data was allocated by Accelerate, this can typically be done
 -- without copying.
 --
--- @since 1.1.0.0@
+-- @since 0.1.0.0@
 --
 {-# INLINE toUArray #-}
 toUArray

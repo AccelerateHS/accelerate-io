@@ -75,7 +75,7 @@ type family ByteStrings e where
 --
 -- The input data may not be modified through the 'ByteString's afterwards.
 --
--- @since 1.1.0.0@
+-- @since 0.1.0.0@
 --
 {-# INLINE fromByteStrings #-}
 fromByteStrings :: forall sh e. (Shape sh, Elt e) => sh -> ByteStrings (EltR e) -> Array sh e
@@ -130,7 +130,7 @@ fromByteStrings sh bs = Array (R.Array (fromElt sh) (tuple (eltR @e) bs))
 --
 -- Data is considered to be in row-major order.
 --
--- @since 1.1.0.0@
+-- @since 0.1.0.0@
 --
 {-# INLINE toByteStrings #-}
 toByteStrings :: forall sh e. (Shape sh, Elt e) => Array sh e -> ByteStrings (EltR e)
