@@ -5,6 +5,8 @@
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE FunctionalDependencies    #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
@@ -39,10 +41,13 @@ module Data.Array.Repa.Repr.Accelerate (
 
 import Control.Monad
 
-import qualified Data.Array.Repa                        as R
-import qualified Data.Array.Repa.Eval                   as R
-import qualified Data.Array.Accelerate.Array.Data       as A
-import qualified Data.Array.Accelerate.Array.Sugar      as A
+import qualified Data.Array.Accelerate.Array.Data                   as A
+import qualified Data.Array.Accelerate.Sugar.Array                  as A
+import qualified Data.Array.Accelerate.Sugar.Elt                    as A
+import qualified Data.Array.Accelerate.Sugar.Shape                  as A
+import qualified Data.Array.Accelerate.Representation.Array         as AR
+import qualified Data.Array.Repa                                    as R
+import qualified Data.Array.Repa.Eval                               as R
 
 
 -- | Index conversion and equivalence statement between Repa and Accelerate
@@ -83,7 +88,7 @@ data A
 --
 instance A.Elt e => R.Source A e where
   data Array A sh e
-    = AAccelerate !sh !(A.ArrayData (A.EltRepr e))
+    = AAccelerate !sh !(A.ArrayData (A.EltR e))
 
   {-# INLINE extent #-}
   extent (AAccelerate sh _)
@@ -92,14 +97,14 @@ instance A.Elt e => R.Source A e where
   {-# INLINE linearIndex #-}
   linearIndex (AAccelerate sh adata) ix
     | ix >= 0 && ix < R.size sh
-    = A.toElt (adata `A.unsafeIndexArrayData` ix)
+    = A.toElt (A.indexArrayData (A.eltR @e) adata ix)
 
     | otherwise
     = error "Repa: accelerate array out of bounds"
 
   {-# INLINE unsafeLinearIndex #-}
   unsafeLinearIndex (AAccelerate _ adata) ix
-    = A.toElt (adata `A.unsafeIndexArrayData` ix)
+    = A.toElt (A.indexArrayData (A.eltR @e) adata ix)
 
   {-# INLINE deepSeqArray #-}
   deepSeqArray (AAccelerate sh adata) x
@@ -110,20 +115,19 @@ instance A.Elt e => R.Source A e where
 --
 instance A.Elt e => R.Target A e where
   data MVec A e
-    = MAVec (A.MutableArrayData (A.EltRepr e))
+    = MAVec (A.MutableArrayData (A.EltR e))
 
   {-# INLINE newMVec #-}
   newMVec n
-    = MAVec `liftM` A.newArrayData n
+    = MAVec `liftM` A.newArrayData (A.eltR @e) n
 
   {-# INLINE unsafeWriteMVec #-}
   unsafeWriteMVec (MAVec mad) n e
-    = A.unsafeWriteArrayData mad n (A.fromElt e)
+    = A.writeArrayData (A.eltR @e) mad n (A.fromElt e)
 
   {-# INLINE unsafeFreezeMVec #-}
   unsafeFreezeMVec sh (MAVec mad)
-    = do adata  <- A.unsafeFreezeArrayData mad
-         return $! AAccelerate sh adata
+    = return $! AAccelerate sh mad
 
   {-# INLINE deepSeqMVec #-}
   deepSeqMVec (MAVec arr) x             -- maybe?
@@ -142,7 +146,7 @@ toRepa
     :: Shapes sh sh'
     => A.Array sh' e -> R.Array A sh e
 {-# INLINE toRepa #-}
-toRepa arr@(A.Array _ adata)
+toRepa arr@(A.Array (AR.Array _ adata))
   = AAccelerate (toR (A.shape arr)) adata
 
 -- | /O(1)/. Unpack to an Accelerate array.
@@ -152,7 +156,7 @@ fromRepa
     => R.Array A sh e -> A.Array sh' e
 {-# INLINE fromRepa #-}
 fromRepa (AAccelerate sh adata)
-  = A.Array (A.fromElt (toA sh)) adata
+  = A.Array (AR.Array (A.fromElt (toA sh)) adata)
 
 
 -- Computations ----------------------------------------------------------------
