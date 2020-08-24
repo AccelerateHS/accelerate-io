@@ -28,7 +28,7 @@ jobs:
           # - os: windows-latest
           #   ghc: "8.10"
     env:
-      STACK_FLAGS: "--system-ghc --no-install-ghc --fast --flag accelerate:nofib"
+      STACK_FLAGS: "--system-ghc --no-install-ghc --fast"
 
     steps:
     - uses: actions/checkout@v2
