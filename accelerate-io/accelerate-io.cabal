@@ -56,12 +56,12 @@ library
 
 
 source-repository head
-  Type:                 git
-  Location:             git://github.com/AccelerateHS/accelerate-io.git
+  type:                 git
+  location:             git://github.com/AccelerateHS/accelerate-io.git
 
 source-repository this
-  Type:                 git
-  Tag:                  v1.3.0.0
-  Location:             git://github.com/AccelerateHS/accelerate-io.git
+  type:                 git
+  tag:                  v1.3.0.0
+  location:             git://github.com/AccelerateHS/accelerate-io.git
 
 -- vim: nospell
