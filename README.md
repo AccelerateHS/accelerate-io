@@ -12,8 +12,8 @@
 
 </div>
 
-This repository contains several packages providing efficient conversion
-routines between a range of data formats and Accelerate arrays.
+Efficient conversion routines between Accelerate arrays and a range of data
+formats.
 
 For details on Accelerate, refer to the [main repository][GitHub].
 

@@ -1,3 +1,1 @@
-accelerate-io-JuicyPixels
-=========================
-
+../README.md
