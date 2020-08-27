@@ -17,6 +17,7 @@ author:                 The Accelerate Team
 maintainer:             Trevor L. McDonell <trevor.mcdonell@gmail.com>
 homepage:               https://github.com/AccelerateHS/accelerate-io#readme
 bug-reports:            https://github.com/AccelerateHS/accelerate-io/issues
+category:               Accelerate, Data
 
 extra-source-files:
     README.md

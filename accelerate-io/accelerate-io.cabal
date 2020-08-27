@@ -21,7 +21,7 @@ Maintainer:             Trevor L. McDonell <trevor.mcdonell@gmail.com>
 Homepage:               https://github.com/AccelerateHS/accelerate-io
 Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
 
-Category:               Compilers/Interpreters, Concurrency, Data, Parallelism
+Category:               Accelerate, Data
 Stability:              Experimental
 
 Extra-source-files:
