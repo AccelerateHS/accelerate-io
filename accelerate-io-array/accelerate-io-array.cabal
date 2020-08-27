@@ -3,10 +3,10 @@ version:                0.1.0.0
 cabal-version:          >= 1.10
 build-type:             Simple
 
-synopsis:               Read and write Accelerate arrays in various formats
+synopsis:               Convert between Accelerate and array
 Description:
-  This package provides efficient conversion routines between a range of array
-  types and Accelerate arrays.
+  This package provides efficient conversion routines between Accelerate arrays
+  and those from the array library.
   .
   Refer to the main /Accelerate/ package for more information:
   <http://hackage.haskell.org/package/accelerate>
