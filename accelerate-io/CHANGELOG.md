@@ -7,7 +7,7 @@ project adheres to the [Haskell Package Versioning
 Policy (PVP)](https://pvp.haskell.org)
 
 
-## [next]
+## [1.3.0.0] - 2020-08-26
 ### Changed
   * Split into separate packages
 
@@ -34,7 +34,7 @@ Policy (PVP)](https://pvp.haskell.org)
   * stable release
 
 
-[next]:       https://github.com/AccelerateHS/accelerate-io/compare/1.2.0.0...HEAD
+[1.3.0.0]:    https://github.com/AccelerateHS/accelerate-io/compare/1.2.0.0...v1.3.0.0
 [1.2.0.0]:    https://github.com/AccelerateHS/accelerate-io/compare/1.0.0.1...1.2.0.0
 [1.0.0.1]:    https://github.com/AccelerateHS/accelerate-io/compare/1.0.0.0...1.0.0.1
 [1.0.0.0]:    https://github.com/AccelerateHS/accelerate-io/compare/0.15.1.0...1.0.0.0
