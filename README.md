@@ -17,5 +17,9 @@ routines between a range of data formats and Accelerate arrays.
 
 For details on Accelerate, refer to the [main repository][GitHub].
 
-  [GitHub]: https://github.com/AccelerateHS/accelerate
+Contributions and bug reports are welcome!<br>
+Please feel free to contact me through [GitHub][GitHub] or [gitter.im][gitter.im].
+
+  [GitHub]:     https://github.com/AccelerateHS/accelerate
+  [gitter.im]:  https://gitter.im/AccelerateHS/Lobby
 
