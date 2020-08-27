@@ -2,7 +2,7 @@
 # For advanced use and comprehensive documentation of the format, please see:
 # https://docs.haskellstack.org/en/stable/yaml_configuration/
 
-resolver: nightly-2020-08-23
+resolver: nightly-2020-08-26
 
 packages:
 - accelerate-io
@@ -15,9 +15,7 @@ packages:
 - accelerate-io-vector
 
 extra-deps:
-- github: tmcdonell/accelerate
-  commit: d7caff6f9153b93ca467360f8f3cdc5975685c2f
-
+- accelerate-1.3.0.0
 - repa-3.4.1.4
 
 # Override default flag values for local packages and extra-deps
