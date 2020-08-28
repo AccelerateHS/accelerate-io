@@ -1,3 +1,1 @@
-accelerate-io-bytestring
-========================
-
+../README.md

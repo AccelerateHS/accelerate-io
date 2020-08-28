@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and the
 project adheres to the [Haskell Package Versioning
 Policy (PVP)](https://pvp.haskell.org)
 
-## [next]
+## [0.1.0.0] - 2020-08-27
 ### Changed
   * Split from the `accelerate-io` package
 

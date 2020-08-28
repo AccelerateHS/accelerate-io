@@ -4,12 +4,13 @@ Cabal-version:          >= 1.10
 Tested-with:            GHC >= 8.6
 Build-type:             Simple
 
-Synopsis:               Read and write Accelerate arrays in various formats
+Synopsis:               Convert between Accelerate arrays and raw pointers
 Description:
-  This package provides efficient conversion routines between a range of array
-  types and Accelerate arrays.
+  This package provides efficient conversion routines between Accelerate arrays
+  and raw pointers.
   .
-  As of version 1.3 this package has been split up into smaller components.
+  As of version 1.3 this package has been split up into smaller components each
+  targeting a specific data type.
   .
   Refer to the main /Accelerate/ package for more information:
   <http://hackage.haskell.org/package/accelerate>
@@ -21,7 +22,7 @@ Maintainer:             Trevor L. McDonell <trevor.mcdonell@gmail.com>
 Homepage:               https://github.com/AccelerateHS/accelerate-io
 Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
 
-Category:               Compilers/Interpreters, Concurrency, Data, Parallelism
+Category:               Accelerate, Data
 Stability:              Experimental
 
 Extra-source-files:
@@ -56,12 +57,12 @@ library
 
 
 source-repository head
-  Type:                 git
-  Location:             git://github.com/AccelerateHS/accelerate-io.git
+  type:                 git
+  location:             git://github.com/AccelerateHS/accelerate-io.git
 
 source-repository this
-  Type:                 git
-  Tag:                  v1.3.0.0
-  Location:             git://github.com/AccelerateHS/accelerate-io.git
+  type:                 git
+  tag:                  v1.3.0.0
+  location:             git://github.com/AccelerateHS/accelerate-io.git
 
 -- vim: nospell

@@ -3,10 +3,10 @@ version:                0.1.0.0
 cabal-version:          >= 1.10
 build-type:             Simple
 
-synopsis:               Read and write Accelerate arrays in various formats
+synopsis:               Convert between Accelerate arrays and BMP images
 Description:
-  This package provides efficient conversion routines between a range of array
-  types and Accelerate arrays.
+  This package provides efficient conversion routines between Accelerate arrays
+  and BMP images.
   .
   Refer to the main /Accelerate/ package for more information:
   <http://hackage.haskell.org/package/accelerate>
@@ -17,6 +17,7 @@ author:                 The Accelerate Team
 maintainer:             Trevor L. McDonell <trevor.mcdonell@gmail.com>
 homepage:               https://github.com/AccelerateHS/accelerate-io#readme
 bug-reports:            https://github.com/AccelerateHS/accelerate-io/issues
+category:               Accelerate, Data
 
 extra-source-files:
     README.md
