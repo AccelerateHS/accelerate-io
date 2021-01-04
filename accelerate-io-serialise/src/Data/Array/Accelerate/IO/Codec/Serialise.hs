@@ -37,8 +37,7 @@ import Data.Array.Accelerate.IO.Data.ByteString
 instance (Shape sh, Elt e) => Serialise (Array sh e) where
   {-# INLINE encode #-}
   encode arr@(Array arrR)
-    =  encodeListLen (1 + fromIntegral (R.rank (shapeR @sh)) + fieldsArrayR (eltR @e))
-    <> encodeInt 1 -- version
+    =  encodeListLen (fromIntegral (R.rank (shapeR @sh)) + fieldsArrayR (eltR @e))
     <> encodeShapeR (shapeR @sh) (R.shape arrR)
     <> encodeArrayR (eltR @e) (toByteStrings arr)
     where
@@ -92,7 +91,6 @@ instance (Shape sh, Elt e) => Serialise (Array sh e) where
   {-# INLINE decode #-}
   decode = do
     _  <- decodeListLen
-    1  <- decodeInt -- version
     sh <- decodeShapeR (shapeR @sh)
     bs <- decodeArrayR (eltR @e)
     return $! fromByteStrings (toElt sh) bs
