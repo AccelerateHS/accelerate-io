@@ -12,6 +12,7 @@ packages:
 - accelerate-io-cereal
 - accelerate-io-JuicyPixels
 - accelerate-io-repa
+- accelerate-io-serialise
 - accelerate-io-vector
 
 extra-deps:
