@@ -60,8 +60,6 @@ type family ByteStrings e where
   ByteStrings Half      = ByteString
   ByteStrings Float     = ByteString
   ByteStrings Double    = ByteString
-  ByteStrings Bool      = ByteString
-  ByteStrings Char      = ByteString
   ByteStrings (Vec n a) = ByteStrings a
   ByteStrings (a,b)     = (ByteStrings a, ByteStrings b)
 
