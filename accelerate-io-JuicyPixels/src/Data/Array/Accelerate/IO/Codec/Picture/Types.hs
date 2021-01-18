@@ -49,36 +49,47 @@ import Codec.Picture.Types
 
 pattern PixelYA8_ :: Exp Pixel8 -> Exp Pixel8 -> Exp PixelYA8
 pattern PixelYA8_ y a = V2 y a
+{-# COMPLETE PixelYA8_ #-}
 
 pattern PixelYA16_ :: Exp Pixel16 -> Exp Pixel16 -> Exp PixelYA16
 pattern PixelYA16_ y a = V2 y a
+{-# COMPLETE PixelYA16_ #-}
 
 pattern PixelRGB8_ :: Exp Pixel8 -> Exp Pixel8 -> Exp Pixel8 -> Exp PixelRGB8
 pattern PixelRGB8_ r g b = V3 r g b
+{-# COMPLETE PixelRGB8_ #-}
 
 pattern PixelRGB16_ :: Exp Pixel16 -> Exp Pixel16 -> Exp Pixel16 -> Exp PixelRGB16
 pattern PixelRGB16_ r g b = V3 r g b
+{-# COMPLETE PixelRGB16_ #-}
 
 pattern PixelRGBF_ :: Exp PixelF -> Exp PixelF -> Exp PixelF -> Exp PixelRGBF
 pattern PixelRGBF_ r g b = V3 r g b
+{-# COMPLETE PixelRGBF_ #-}
 
 pattern PixelRGBA8_ :: Exp Pixel8 -> Exp Pixel8 -> Exp Pixel8 -> Exp Pixel8 -> Exp PixelRGBA8
 pattern PixelRGBA8_ r g b a = V4 r g b a
+{-# COMPLETE PixelRGBA8_ #-}
 
 pattern PixelRGBA16_ :: Exp Pixel16 -> Exp Pixel16 -> Exp Pixel16 -> Exp Pixel16 -> Exp PixelRGBA16
 pattern PixelRGBA16_ r g b a = V4 r g b a
+{-# COMPLETE PixelRGBA16_ #-}
 
 pattern PixelCMYK8_ :: Exp Pixel8 -> Exp Pixel8 -> Exp Pixel8 -> Exp Pixel8 -> Exp PixelCMYK8
 pattern PixelCMYK8_ r g b a = V4 r g b a
+{-# COMPLETE PixelCMYK8_ #-}
 
 pattern PixelCMYK16_ :: Exp Pixel16 -> Exp Pixel16 -> Exp Pixel16 -> Exp Pixel16 -> Exp PixelCMYK16
 pattern PixelCMYK16_ r g b a = V4 r g b a
+{-# COMPLETE PixelCMYK16_ #-}
 
 pattern PixelYCbCr8_ :: Exp Pixel8 -> Exp Pixel8 -> Exp Pixel8 -> Exp PixelYCbCr8
 pattern PixelYCbCr8_ y cb cr = V3 y cb cr
+{-# COMPLETE PixelYCbCr8_ #-}
 
 pattern PixelYCbCrK8_ :: Exp Pixel8 -> Exp Pixel8 -> Exp Pixel8 -> Exp Pixel8 -> Exp PixelYCbCrK8
 pattern PixelYCbCrK8_ y cb cr k = V4 y cb cr k
+{-# COMPLETE PixelYCbCrK8_ #-}
 
 
 instance Elt PixelYA8 where
