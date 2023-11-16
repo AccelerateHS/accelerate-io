@@ -18,6 +18,7 @@ module Data.Array.Accelerate.IO.Data.Primitive.ByteArray
 import Data.Primitive.ByteArray
 
 import GHC.Base
+import GHC.Exts
 import GHC.ForeignPtr
 
 
