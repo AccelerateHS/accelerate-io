@@ -1,5 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies    #-}
+{-# LANGUAGE TypeOperators   #-}
 -- |
 -- Module      : Data.Array.Accelerate.IO.Codec.Picture
 -- Copyright   : [2019..2020] The Accelerate Team
