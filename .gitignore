@@ -1,4 +1,5 @@
 dist/
+dist-newstyle/
 /.stack-work
 /stack.yaml
 .DS_Store
