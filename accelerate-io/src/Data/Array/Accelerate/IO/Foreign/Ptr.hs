@@ -46,8 +46,13 @@ type Ptrs e = GArrayDataR Ptr e
 --
 -- The data may not be modified through the 'Ptrs' afterwards.
 --
--- You are responsible for ensuring that the data remains alive for the duration
--- of the Accelerate computation, and for freeing it afterwards.
+-- **Note**: You are responsible for ensuring that the data remains alive for
+-- the duration of the Accelerate computation, and for freeing it afterwards.
+-- Be aware that @run@ combinators may already return results to Haskell lazily
+-- once some computations have completed, while other Accelerate code is still
+-- running and using arrays. In some cases, it is even possible that Accelerate
+-- code is still running after /all/ results have been returned. Use the API in
+-- "Data.Array.Accelerate.IO.Foreign.ForeignPtr" when in doubt.
 --
 -- You should make sure that the data is suitably aligned.
 --
